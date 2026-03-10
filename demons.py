@@ -32,6 +32,12 @@ CYAN = "\033[36m"
 WHITE = "\033[37m"
 MAGENTA = "\033[35m"
 
+
+class GameOverException(Exception):
+    """Raised when a fatal decision ends the run."""
+    pass
+
+
 # ─── TEXT SKIP SYSTEM ───────────────────────────────────────
 # Press ENTER during scrolling text to display all remaining
 # text in the current scene instantly. Resets at each choice
@@ -166,9 +172,14 @@ def get_choice(options):
     for i, option in enumerate(options, 1):
         print(f"  {YELLOW}{i}{RESET}) {option}")
     print()
+    print(f"  {DIM}[S] Save game{RESET}")
+    print()
     while True:
         try:
-            raw = input(f"  {GREEN}>{RESET} ")
+            raw = input(f"  {GREEN}>{RESET} ").strip()
+            if raw.lower() == "s":
+                save_to_slot()
+                continue
             choice = int(raw)
             if 1 <= choice <= len(options):
                 return choice
@@ -205,38 +216,125 @@ def show_status():
 def clamp_stats():
     for key in ["ennui", "revolutionary_fervor", "soul", "notoriety"]:
         state[key] = max(0, min(100, state[key]))
+    # Track peak marya_bond (she dies mid-game, bond resets to 0)
+    state["marya_bond_peak"] = max(state.get("marya_bond_peak", 0), state["marya_bond"])
+
+
+# ─── GAME OVER ───────────────────────────────────────────────
+
+def game_over(death_lines):
+    """Fatal decision — show death scene and end the run."""
+    print()
+    for line in death_lines:
+        slow_print(line)
+    print()
+    slow_print(f"  {RED}{BOLD}  ★ ☆ ☆ ☆ ☆  GAME OVER  ★ ☆ ☆ ☆ ☆{RESET}")
+    print()
+    slow_print(f"  {DIM}The silk cord was not needed after all.{RESET}")
+    slow_print(f"  {DIM}Load a save to try again.{RESET}")
+    print()
+    press_enter()
+    raise GameOverException()
 
 
 # ─── SAVE SYSTEM ──────────────────────────────────────────────
 
 SAVE_FILE = Path.home() / ".demons_save.json"
 
+# Tracks current chapter index so save_to_slot() knows where we are
+_current_chapter_index = 0
 
-def save_game(chapter_index):
-    """Auto-save current state and chapter index to JSON."""
-    data = {"chapter_index": chapter_index, "state": dict(state)}
+
+def _load_save_file():
+    """Load the full save file. Returns dict or empty structure."""
+    try:
+        with open(SAVE_FILE, "r") as f:
+            data = json.load(f)
+            # Migrate old format (flat dict with "chapter_index") to new format
+            if "chapter_index" in data and "auto" not in data:
+                return {"auto": data, "slot_1": None, "slot_2": None, "slot_3": None}
+            return data
+    except (OSError, json.JSONDecodeError):
+        return {"auto": None, "slot_1": None, "slot_2": None, "slot_3": None}
+
+
+def _write_save_file(data):
+    """Write the full save file."""
     try:
         with open(SAVE_FILE, "w") as f:
             json.dump(data, f)
     except OSError:
-        pass  # silently fail if can't write
+        pass
+
+
+def save_game(chapter_index):
+    """Auto-save current state and chapter index."""
+    data = _load_save_file()
+    data["auto"] = {"chapter_index": chapter_index, "state": dict(state)}
+    _write_save_file(data)
+
+
+def save_to_slot():
+    """Show save slot menu, let player pick a slot."""
+    global _current_chapter_index
+    data = _load_save_file()
+    print()
+    print(f"  {BOLD}SAVE GAME{RESET}")
+    print(f"  {DIM}{'─' * 40}{RESET}")
+    for i in range(1, 4):
+        slot = data.get(f"slot_{i}")
+        if slot:
+            label = slot.get("label", "Unknown")
+            print(f"  {YELLOW}{i}{RESET}) {label}")
+        else:
+            print(f"  {YELLOW}{i}{RESET}) {DIM}(empty){RESET}")
+    print(f"  {YELLOW}0{RESET}) Cancel")
+    print()
+    while True:
+        try:
+            raw = input(f"  {GREEN}Save to slot: {RESET}").strip()
+            choice = int(raw)
+            if choice == 0:
+                print(f"  {DIM}Cancelled.{RESET}")
+                return
+            if 1 <= choice <= 3:
+                # Build label from current chapter
+                # CHAPTERS isn't defined yet at module level when this runs,
+                # but it will be by the time the game is playing
+                try:
+                    ch_name = CHAPTERS[_current_chapter_index][0]
+                except (NameError, IndexError):
+                    ch_name = "Unknown"
+                data[f"slot_{choice}"] = {
+                    "chapter_index": _current_chapter_index,
+                    "state": dict(state),
+                    "label": f"Ch.{_current_chapter_index + 1} {ch_name}",
+                }
+                _write_save_file(data)
+                print(f"  {GREEN}Saved to slot {choice}.{RESET}")
+                return
+        except (ValueError, EOFError):
+            pass
+        print(f"  {RED}Enter 1-3 or 0 to cancel.{RESET}")
 
 
 def load_game():
-    """Load saved game. Returns dict with 'chapter_index' and 'state', or None."""
-    try:
-        with open(SAVE_FILE, "r") as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError, KeyError):
-        return None
+    """Load auto-save. Returns dict with 'chapter_index' and 'state', or None."""
+    data = _load_save_file()
+    return data.get("auto")
+
+
+def load_slot(slot_num):
+    """Load a specific save slot. Returns dict or None."""
+    data = _load_save_file()
+    return data.get(f"slot_{slot_num}")
 
 
 def delete_save():
-    """Remove save file on game completion."""
-    try:
-        os.remove(SAVE_FILE)
-    except OSError:
-        pass
+    """Remove auto-save on game completion (keep slots)."""
+    data = _load_save_file()
+    data["auto"] = None
+    _write_save_file(data)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -289,16 +387,41 @@ def title_screen():
    {DIM}(c) 186- The Provincial Chronicle Press{RESET}
 """)
 
-    saved = load_game()
-    if saved:
-        print(f"  {YELLOW}A saved game was found.{RESET}")
+    save_data = _load_save_file()
+    auto = save_data.get("auto")
+    slots = [save_data.get(f"slot_{i}") for i in range(1, 4)]
+    has_saves = auto or any(slots)
+
+    if has_saves:
+        print(f"  {BOLD}SAVED GAMES{RESET}")
+        print(f"  {DIM}{'─' * 40}{RESET}")
+        if auto:
+            try:
+                ch_name = CHAPTERS[auto["chapter_index"]][0]
+            except (IndexError, KeyError):
+                ch_name = "Unknown"
+            print(f"  {YELLOW}C{RESET}) Continue — Ch.{auto['chapter_index'] + 1} {ch_name}")
+        for i in range(3):
+            if slots[i]:
+                label = slots[i].get("label", "Unknown")
+                print(f"  {YELLOW}{i + 1}{RESET}) Load {label}")
+            else:
+                print(f"  {DIM}  {i + 1}) (empty slot){RESET}")
+        print(f"  {YELLOW}N{RESET}) New Game")
         print()
-        choice = get_choice([
-            "Continue your journey",
-            "Begin anew (overwrites save)",
-        ])
-        if choice == 1:
-            return "continue"
+        _reset_skip()
+        while True:
+            raw = input(f"  {GREEN}>{RESET} ").strip().lower()
+            if raw == "c" and auto:
+                return "load:auto"
+            if raw in ("1", "2", "3") and slots[int(raw) - 1]:
+                return f"load:{raw}"
+            if raw == "n":
+                return "new"
+            if raw in ("1", "2", "3") and not slots[int(raw) - 1]:
+                print(f"  {DIM}That slot is empty.{RESET}")
+            else:
+                print(f"  {RED}Enter C, 1-3, or N.{RESET}")
     else:
         press_enter()
 
@@ -758,7 +881,31 @@ def chapter_new_duel():
         "Fire into the ground at Gaganov's feet. Make a point.",
         "Fire into a tree stump and remark on the splendid morning.",
         "Walk toward him, pistol lowered, and offer your hand.",
+        "Step forward into his line of fire.",
     ])
+
+    if choice == 5:
+        state["decisions"].append("walked_into_bullet")
+        game_over([
+            f"  {RED}You step forward. One step. Two.{RESET}",
+            f"  {RED}Not toward Gaganov. Into the space between you.{RESET}",
+            f"  {RED}Into the path of the next bullet.{RESET}",
+            "",
+            "  Gaganov does not understand. Kirillov does.",
+            '  "Stop!" Kirillov shouts. But you do not stop.',
+            "  You have never stopped at anything in your life.",
+            "  That was always the problem.",
+            "",
+            "  The pistol fires. The birches witness.",
+            "  You fall in the wet grass.",
+            "  The seconds stand over you. Gaganov is screaming.",
+            "  Kirillov kneels beside you and says nothing.",
+            "  He understands perfectly.",
+            "",
+            f"  {DIM}At the inquest, the doctors noted the angle of entry.{RESET}",
+            f"  {DIM}They called it an accident. Kirillov did not correct them.{RESET}",
+            f"  {DIM}He had his own appointment with a pistol to keep.{RESET}",
+        ])
 
     if choice == 1:
         state["soul"] += 10
@@ -1092,7 +1239,34 @@ def chapter_4_night_shatov():
         '"I shall not lie to you. I do not believe."',
         '"I... I will believe in God." (Shatov\'s own answer.)',
         "Change the subject. Ask about Marya Timofeyevna instead.",
+        '"There is nothing. No God. No Russia. No you. Nothing."',
     ])
+
+    if choice == 5:
+        state["decisions"].append("destroyed_shatov")
+        game_over([
+            '  "There is nothing," you say.',
+            '  "No God. No Russia. No people that bear God.',
+            '   No faith. No future tense. Nothing."',
+            "",
+            "  Shatov stares at you.",
+            "  You have never spoken to him with such honesty.",
+            "  This is the man who built his entire faith on your words.",
+            "  Who left his wife because you said Russia would be saved.",
+            "  Who believed because you told him to believe.",
+            "",
+            "  Something breaks in his face. Not anger — that would be better.",
+            "  Something deeper. The foundation giving way.",
+            '  He sits down on the bed, very slowly, and says:',
+            '  "Then I have wasted my life."',
+            "",
+            "  You have destroyed the only person who believed in you.",
+            "  The emptiness at your center has finally consumed",
+            "  the last thing that was real.",
+            "",
+            f"  {BOLD}THE VOID{RESET}",
+            f"  {DIM}There is nothing left to play for.{RESET}",
+        ])
 
     if choice == 1:
         state["soul"] += 10
@@ -1321,7 +1495,31 @@ def chapter_5_night_lebyadkins():
         '"Get away from me." Strike him and walk on.',
         "Give him nothing. But do not refuse clearly either.",
         '"Here are three roubles. Now leave me alone."',
+        "Turn your back on him. Walk slowly.",
     ])
+
+    if choice2 == 4:
+        state["decisions"].append("turned_back_on_fedka")
+        game_over([
+            f"  {RED}You turn your back on the convict.{RESET}",
+            f"  {RED}You walk. Slowly. Deliberately.{RESET}",
+            f"  {RED}The way you do everything — as a performance{RESET}",
+            f"  {RED}for an audience that does not exist.{RESET}",
+            "",
+            "  Fedka is a practical man.",
+            "  He has killed before. The motion is familiar.",
+            "  The knife enters between the ribs with the ease",
+            "  of long practice. You feel a curious warmth.",
+            "",
+            "  The river is very black below the bridge.",
+            "  Fedka rifles your pockets with professional speed.",
+            '  "Forgive me, Your Honor," he says, crossing himself.',
+            "  He pushes you over the railing.",
+            "  The splash is very small for such a large man.",
+            "",
+            f"  {DIM}They will find you downstream in three days.{RESET}",
+            f"  {DIM}Pyotr Verkhovensky will use even this.{RESET}",
+        ])
 
     if choice2 == 1:
         state["soul"] += 10
@@ -1438,7 +1636,34 @@ def chapter_6_ivan_tsarevitch():
         '"I won\'t give up Shatov to you." Refuse the blood price.',
         '"Then have you been seriously reckoning on me?"',
         "Listen to all of it. Let him empty himself.",
+        '"Yes. I will be your Ivan Tsarevitch."',
     ])
+
+    if choice == 5:
+        state["decisions"].append("became_ivan_tsarevitch")
+        game_over([
+            '  "Yes," you say.',
+            "  One word. The most dangerous word in the Russian language.",
+            "",
+            "  Pyotr Verkhovensky's face transforms.",
+            "  Not joy — something beyond joy.",
+            "  The ecstasy of a man whose God has finally answered.",
+            '  He falls to his knees in the mud.',
+            '  "My prince! My Tsarevitch! I knew — I always knew!"',
+            "",
+            "  He is kissing your hand. Weeping. Planning.",
+            "  Already the machinery is turning in his mind —",
+            "  the leaflets, the signals, the murders to come,",
+            "  all of them bearing your face.",
+            "",
+            "  You are no longer Nikolai Vsevolodovich Stavrogin.",
+            "  You are a mask. A banner. A puppet with a crown.",
+            "  The emptiness has been filled with someone else's purpose.",
+            "  That is the worst kind of death.",
+            "",
+            f"  {BOLD}CONSUMED{RESET}",
+            f"  {DIM}Columbus has found his America at last.{RESET}",
+        ])
 
     if choice == 1:
         state["soul"] += 10
@@ -1577,7 +1802,35 @@ def chapter_7_meeting():
         '"Shatov is right. This meeting is a farce."',
         "Stay silent. Your silence binds them as much as any words.",
         "Leave. Follow Shatov out.",
+        '"Shatov is a traitor. Do what must be done."',
     ])
+
+    if choice == 5:
+        state["decisions"].append("endorsed_murder")
+        game_over([
+            '  "Shatov is a traitor," you say.',
+            "  Your voice is calm. Aristocratic. Final.",
+            '  "He will inform. Do what must be done."',
+            "",
+            "  The room goes silent.",
+            "  Virginsky turns white. Lyamshin makes a sound",
+            "  like a small animal. Even Pyotr stares —",
+            "  he expected to manipulate you into this,",
+            "  not to hear you volunteer.",
+            "",
+            "  You have just authorized a murder.",
+            "  Not through ambiguity. Not through silence.",
+            "  Through clear, deliberate words witnessed by seven people.",
+            "  The moral event horizon has been crossed.",
+            "",
+            "  Pyotr recovers first. His smile is radiant.",
+            '  "You see?" he says to the room. "He understands."',
+            "  No one in the room will ever be clean again.",
+            "  Least of all you.",
+            "",
+            f"  {BOLD}THE ACCOMPLICE{RESET}",
+            f"  {DIM}The cement has been mixed. Shatov's blood is on your hands.{RESET}",
+        ])
 
     if choice == 1:
         state["ennui"] += 10
@@ -1742,7 +1995,35 @@ def chapter_8_fete():
         "Watch from the back. This is not your disaster.",
         "Find Liza. Something is happening between you tonight.",
         "Leave the fete entirely. Walk into the night.",
+        "Walk to the river. The fire across the water is calling.",
     ])
+
+    if choice == 5:
+        state["decisions"].append("walked_into_fire")
+        game_over([
+            "  The glow across the river is wrong. Too bright. Too hungry.",
+            "  You know what burns there — the riverside quarter.",
+            "  The Lebyadkins' lodgings. Your wife's room.",
+            "",
+            f"  {RED}You run.{RESET}",
+            "",
+            "  Past the bridge. Past the crowd gathering to watch.",
+            "  Past the men with buckets who have already given up.",
+            "  Into the house. Up the stairs. Through the smoke.",
+            "",
+            "  Marya Timofeyevna is in her room, in her white dress,",
+            "  sitting calmly, as though she has been expecting you.",
+            '  "My prince," she says. "You came."',
+            "",
+            "  The ceiling collapses.",
+            "",
+            f"  {DIM}They found two bodies in the ash.{RESET}",
+            f"  {DIM}The Captain's was found by the door, throat cut —{RESET}",
+            f"  {DIM}Fedka's work, not the fire's.{RESET}",
+            f"  {DIM}Yours they found beside your wife's.{RESET}",
+            f"  {DIM}No one could explain what you were doing there.{RESET}",
+            f"  {DIM}No one ever could explain you.{RESET}",
+        ])
 
     if choice == 1:
         state["soul"] += 15
@@ -2071,7 +2352,34 @@ def chapter_9_shatov_murder():
         "Walk to the bridge over the river. Stand in the dark.",
         "Sit in the dark. Let it press down on you.",
         "Prepare to leave. There is nothing left here.",
+        "Go to the pond. Watch them do it.",
     ])
+
+    if choice == 5:
+        state["decisions"].append("watched_murder")
+        game_over([
+            "  You put on your coat. You walk through the park.",
+            "  You know exactly where they will be — the grotto,",
+            "  by the pond, where the printing press is supposedly buried.",
+            "",
+            "  You stand behind the birches. You watch.",
+            "  Shatov arrives. He bends down to dig.",
+            "  Pyotr raises the pistol.",
+            "",
+            "  Shatov sees you. In the last moment, past Pyotr's shoulder,",
+            "  his eyes find yours in the dark.",
+            '  "Stavrogin —" he says.',
+            "",
+            "  The pistol fires.",
+            "",
+            "  You watch them weigh the body with stones.",
+            "  You watch them push it into the pond.",
+            "  You do not move. You do not speak.",
+            "  You are the audience for your own evil.",
+            "",
+            f"  {BOLD}THE WITNESS{RESET}",
+            f"  {DIM}He saw you. In the last moment, he saw you watching.{RESET}",
+        ])
 
     if choice == 1:
         state["soul"] += 5
@@ -2605,7 +2913,36 @@ def chapter_new_aftermath():
         "Say nothing. Let her draw her own conclusions.",
         '"I am leaving. There is nothing more to discuss."',
         '"Everything they say is true. And worse besides."',
+        '"I did it all. I planned everything. Send for the police."',
     ])
+
+    if choice == 5:
+        state["decisions"].append("false_confession")
+        game_over([
+            '  "I did it all," you say.',
+            '  "The fire. The murders. The conspiracy.',
+            '   I planned everything. Pyotr was my instrument.',
+            '   Send for the police. Let them take me."',
+            "",
+            "  Your mother stares at you.",
+            "  She knows you are lying. You can see it in her eyes.",
+            "  She knows because she knows you — the real you,",
+            "  the one who could never plan anything",
+            "  because he has never wanted anything enough.",
+            "",
+            "  But she does not contradict you.",
+            '  "If that is what you wish," she says.',
+            "  Her voice is ice. Her back is straight.",
+            "  She has always been the stronger one.",
+            "",
+            "  The police come. You confess to everything.",
+            "  Not from repentance — from vanity.",
+            "  The ultimate performance: becoming the demon",
+            "  the town always feared you were.",
+            "",
+            f"  {BOLD}THE DEMON{RESET}",
+            f"  {DIM}Even your confession was a lie. Especially your confession.{RESET}",
+        ])
 
     if choice == 1:
         state["soul"] += 5
@@ -2928,8 +3265,711 @@ def chapter_10_stepan_wandering():
 
 
 # ═══════════════════════════════════════════════════════════════
+#  THE LAST NIGHT — FINAL BOSS
+# ═══════════════════════════════════════════════════════════════
+
+def chapter_final_boss():
+    """The psychological gauntlet. Stavrogin's last night alive."""
+    clear_screen()
+    print(f"""{CYAN}
+    ╔═══════════════════════════════════════════════════════╗
+    ║                                                       ║
+    ║    {WHITE}Night  |  Skvoreshniki  |  Your Rooms{CYAN}              ║
+    ║                                                       ║
+    ║          ┌─────────────────────────┐                  ║
+    ║          │  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   │                  ║
+    ║          │  ▓  {WHITE}A desk. A candle.{CYAN} ▓   │                  ║
+    ║          │  ▓  {WHITE}A letter begun.{CYAN}   ▓   │                  ║
+    ║          │  ▓  {WHITE}Five ghosts.{CYAN}      ▓   │                  ║
+    ║          │  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   │                  ║
+    ║          │                         │                  ║
+    ║          └─────────────────────────┘                  ║
+    ║                                                       ║
+    ║    {DIM}Everyone you have touched. Everyone you have{CYAN}      ║
+    ║    {DIM}broken. They are all here tonight.{CYAN}                ║
+    ╚═══════════════════════════════════════════════════════╝{RESET}
+""")
+
+    slow_print(f"  {BOLD}THE LAST NIGHT{RESET}")
+    print()
+    slow_print("  It is your last night alive. You know this.")
+    slow_print("  Not as a premonition — as a decision already made,")
+    slow_print("  calmly, the way one decides to take a train.")
+    print()
+    slow_print("  You sit at your desk at Skvoreshniki.")
+    slow_print("  The letter to Dasha is half-written.")
+    slow_print("  The candle burns. The house is silent.")
+    print()
+    slow_print("  And then they come.")
+    slow_print("  Not ghosts. Not apparitions.")
+    slow_print("  Memories so vivid they have voices.")
+    slow_print("  The people whose lives you shaped — or shattered —")
+    slow_print("  each making a claim on the emptiness at your center.")
+    print()
+    slow_print(f"  {DIM}Five confrontations stand between you and the loft.{RESET}")
+    slow_print(f"  {DIM}What you built — or failed to build — determines{RESET}")
+    slow_print(f"  {DIM}whether you can answer them.{RESET}")
+    print()
+
+    confrontations = 0
+
+    press_enter()
+
+    # ─── ROUND 1: SHATOV ─────────────────────────────────────
+
+    clear_screen()
+    print(f"""{CYAN}
+    ╔═════════════════════════════════════╗
+    ║  {WHITE}I — SHATOV — "The Question"{CYAN}        ║
+    ╚═════════════════════════════════════╝{RESET}
+""")
+
+    slow_print("  He appears as he was in the garret.")
+    slow_print("  Before the park. Before the pond.")
+    slow_print("  Before the five of them held him down in the dark.")
+    print()
+    slow_print("  He is standing by your desk, shaking slightly,")
+    slow_print("  the way he always shook — from feeling too much,")
+    slow_print("  never too little.")
+    print()
+    slow_print(f'  {BOLD}"Do you believe in God, Stavrogin?"{RESET}')
+    print()
+    slow_print("  But this time it is not a philosophical question.")
+    slow_print("  This time it is asked by a man who was murdered")
+    slow_print("  on the night his wife gave birth to a child")
+    slow_print("  he believed was yours.")
+    print()
+
+    shatov_locked = state["shatov_bond"] >= 15
+
+    if shatov_locked:
+        print(f'  {GREEN}[1] "I wanted to believe. I could not. But I heard you, Ivan."{RESET}')
+    else:
+        print(f'  {DIM}[1] [Requires stronger bond with Shatov]{RESET}')
+    print(f'  [2] "I told you the truth. I do not believe."')
+    print(f'  [3] Say nothing.')
+    print()
+
+    _reset_skip()
+    while True:
+        try:
+            c = input(f"  {GREEN}Your answer (1-3): {RESET}").strip()
+            if c == "1" and shatov_locked:
+                state["soul"] += 15
+                confrontations += 1
+                state["decisions"].append("answered_shatov")
+                print()
+                slow_print("  Something shifts in his face.")
+                slow_print("  The shaking stops.")
+                slow_print('  "Then it was not all for nothing," he says.')
+                slow_print("  His voice is steady. His eyes are clear.")
+                slow_print("  He was always the bravest of them all —")
+                slow_print("  the one who believed without proof.")
+                slow_print("  For one moment, you were worthy of his question.")
+                break
+            elif c == "1" and not shatov_locked:
+                print(f"  {DIM}You cannot choose this. The bond was never built.{RESET}")
+                continue
+            elif c == "2":
+                state["ennui"] += 10
+                state["soul"] -= 5
+                state["decisions"].append("denied_shatov_again")
+                print()
+                slow_print("  Honest, at least. The truth you always told.")
+                slow_print('  He nods slowly. "I know," he says.')
+                slow_print("  But knowing does not help him.")
+                slow_print("  He turns away. You hear his footsteps")
+                slow_print("  on stairs that no longer exist.")
+                break
+            elif c == "3":
+                state["ennui"] += 15
+                state["decisions"].append("silent_before_shatov")
+                print()
+                slow_print("  You reach for something to say and find only emptiness.")
+                slow_print("  The silence stretches. He waits.")
+                slow_print("  He has always waited for you — for the answer,")
+                slow_print("  for the sign, for the faith you could not give.")
+                slow_print("  He waited until the night by the pond.")
+                slow_print("  He is still waiting.")
+                break
+        except (ValueError, EOFError):
+            continue
+
+    clamp_stats()
+    print()
+    press_enter()
+
+    # ─── ROUND 2: KIRILLOV ───────────────────────────────────
+
+    clear_screen()
+    print(f"""{CYAN}
+    ╔═════════════════════════════════════╗
+    ║  {WHITE}II — KIRILLOV — "The Proof"{CYAN}        ║
+    ╚═════════════════════════════════════╝{RESET}
+""")
+
+    slow_print("  He appears bouncing his india-rubber ball.")
+    slow_print("  Catch, bounce, catch. The rhythm of a man")
+    slow_print("  who has resolved the problem of existence")
+    slow_print("  and found the answer is a pistol.")
+    print()
+    slow_print("  He looks at you with that odd, gentle clarity —")
+    slow_print("  the face of someone who has already stepped")
+    slow_print("  beyond fear, beyond hope, into pure logic.")
+    print()
+    slow_print(f'  {BOLD}"I proved my freedom. I acted."{RESET}')
+    slow_print(f'  {BOLD}"What have you done with yours, Stavrogin?"{RESET}')
+    print()
+    slow_print("  His logic is still perfect. Still insane.")
+    slow_print("  But from the other side, it carries a different weight.")
+    slow_print("  He did what he said he would do.")
+    slow_print("  That is more than you have ever managed.")
+    print()
+
+    kirillov_locked = state["soul"] >= 60
+
+    if kirillov_locked:
+        print(f'  {GREEN}[1] "You were braver than I am, Kirillov. I see that now."{RESET}')
+    else:
+        print(f'  {DIM}[1] [Requires higher soul]{RESET}')
+    print(f'  [2] "Your logic destroyed you."')
+    print(f'  [3] "Freedom without purpose is just another prison."')
+    print()
+
+    _reset_skip()
+    while True:
+        try:
+            c = input(f"  {GREEN}Your answer (1-3): {RESET}").strip()
+            if c == "1" and kirillov_locked:
+                state["soul"] += 10
+                state["ennui"] -= 10
+                confrontations += 1
+                state["decisions"].append("honored_kirillov")
+                print()
+                slow_print("  His face changes.")
+                slow_print("  The ball stops bouncing.")
+                slow_print("  For a moment you see it — the five seconds")
+                slow_print("  of eternal harmony he described that night,")
+                slow_print("  the leaf, the spider's web, the sunlight.")
+                slow_print("  He smiles. It is the rarest thing in the world:")
+                slow_print("  Kirillov's smile, unguarded, fully human.")
+                slow_print('  "Then you understand," he says.')
+                break
+            elif c == "1" and not kirillov_locked:
+                print(f"  {DIM}You cannot choose this. The soul is too corroded.{RESET}")
+                continue
+            elif c == "2":
+                state["ennui"] += 5
+                state["decisions"].append("dismissed_kirillovs_proof")
+                print()
+                slow_print("  He bounces the ball twice.")
+                slow_print("  The sound echoes in the empty room.")
+                slow_print('  "You are afraid," he says simply.')
+                slow_print("  He is right. You are afraid of everything.")
+                slow_print("  Even of the logic that would set you free.")
+                break
+            elif c == "3":
+                state["soul"] += 5
+                state["ennui"] += 5
+                state["decisions"].append("questioned_kirillovs_freedom")
+                print()
+                slow_print("  He considers this. The ball bounces.")
+                slow_print('  "Perhaps," he says. "But I chose my prison.')
+                slow_print('   You — you cannot even choose."')
+                slow_print("  The distinction is devastating")
+                slow_print("  precisely because it is accurate.")
+                break
+        except (ValueError, EOFError):
+            continue
+
+    clamp_stats()
+    print()
+    press_enter()
+
+    # ─── ROUND 3: MARYA TIMOFEYEVNA ──────────────────────────
+
+    clear_screen()
+    print(f"""{CYAN}
+    ╔═════════════════════════════════════╗
+    ║  {WHITE}III — MARYA — "The Impostor"{CYAN}       ║
+    ╚═════════════════════════════════════╝{RESET}
+""")
+
+    slow_print("  She appears in her clean white dress.")
+    slow_print("  The holy fool. The lame one. Your wife.")
+    slow_print("  She is dead now — burned in the fire")
+    slow_print("  with her brother, the captain, who wept over her")
+    slow_print("  even as he drank away the money you sent.")
+    print()
+    slow_print("  She looks through you the way she always did —")
+    slow_print("  past the handsome face, past the officer's bearing,")
+    slow_print("  past everything the world sees, to the thing")
+    slow_print("  the world does not.")
+    print()
+    slow_print(f'  {BOLD}"You are not my prince."{RESET}')
+    slow_print(f"  She knew that from the beginning.")
+    slow_print(f'  {BOLD}"But I have a question for you, impostor:"{RESET}')
+    slow_print(f'  {BOLD}"Did you ever love anyone? Even once? Even badly?"{RESET}')
+    print()
+
+    marya_locked = state.get("marya_bond_peak", 0) >= 10
+
+    if marya_locked:
+        print(f'  {GREEN}[1] "I loved you. Not well. Not enough. But it was not nothing."{RESET}')
+    else:
+        print(f'  {DIM}[1] [Requires deeper bond with Marya — now lost]{RESET}')
+    print(f'  [2] "I married you on a dare. I am sorry."')
+    print(f'  [3] "No. I have never loved anyone."')
+    print()
+
+    _reset_skip()
+    while True:
+        try:
+            c = input(f"  {GREEN}Your answer (1-3): {RESET}").strip()
+            if c == "1" and marya_locked:
+                state["soul"] += 15
+                confrontations += 1
+                state["decisions"].append("loved_marya")
+                print()
+                slow_print("  Her face softens.")
+                slow_print("  Not forgiveness — she is beyond that —")
+                slow_print("  but the pity she showed in life.")
+                slow_print("  The pity of the holy fool who sees everything")
+                slow_print("  and judges nothing.")
+                slow_print('  "Poor prince," she says. Not impostor. Prince.')
+                slow_print("  It is the kindest thing anyone has ever called you.")
+                slow_print("  And you married her on a dare. And she is dead.")
+                break
+            elif c == "1" and not marya_locked:
+                print(f"  {DIM}You cannot choose this. The bond was never built — and now she is ash.{RESET}")
+                continue
+            elif c == "2":
+                state["soul"] += 5
+                state["ennui"] += 5
+                state["decisions"].append("apologized_to_marya")
+                print()
+                slow_print("  She tilts her head, considering.")
+                slow_print('  "Sorry," she repeats, tasting the word.')
+                slow_print('  "Yes. You are that. Sorry."')
+                slow_print("  She is not cruel. But the holy fool tells the truth.")
+                slow_print("  Sorry is all you are, and all you have.")
+                break
+            elif c == "3":
+                state["ennui"] += 15
+                state["soul"] -= 10
+                state["decisions"].append("admitted_lovelessness")
+                print()
+                slow_print('  "Poor impostor," she says, and turns away.')
+                slow_print("  Her white dress vanishes into the dark")
+                slow_print("  like smoke from the fire that killed her.")
+                slow_print("  You married her on a bet. She died in a fire.")
+                slow_print("  And you have never loved anyone.")
+                slow_print("  The emptiness is so complete it is almost admirable.")
+                break
+        except (ValueError, EOFError):
+            continue
+
+    clamp_stats()
+    print()
+    press_enter()
+
+    # ─── ROUND 4: PYOTR VERKHOVENSKY ─────────────────────────
+
+    clear_screen()
+    print(f"""{CYAN}
+    ╔═════════════════════════════════════╗
+    ║  {WHITE}IV — PYOTR — "The Worm"{CYAN}            ║
+    ╚═════════════════════════════════════╝{RESET}
+""")
+
+    slow_print("  He appears clutching your sleeve, eyes bright.")
+    slow_print("  He always did that — clutched, grasped, pulled —")
+    slow_print("  the way a vine wraps around whatever is nearest.")
+    print()
+    slow_print("  This is the most dangerous round.")
+    slow_print("  Pyotr does not accuse. He does not plead.")
+    slow_print("  He tempts.")
+    print()
+    slow_print(f'  {BOLD}"It is not too late!"{RESET} His voice is urgent, ecstatic.')
+    slow_print(f'  {BOLD}"You can still be Ivan the Tsarevitch!{RESET}')
+    slow_print(f'  {BOLD} Columbus has found his America!{RESET}')
+    slow_print(f'  {BOLD} You are the leader — you are the sun —{RESET}')
+    slow_print(f'  {BOLD} and I am your worm!"{RESET}')
+    print()
+    slow_print("  His face is the face of a man in love.")
+    slow_print("  Not with you — with the idea of you.")
+    slow_print("  With the idol he has built from your indifference")
+    slow_print("  and called it strength.")
+    print()
+
+    pyotr_locked = state["pyotr_entangled"] <= 10
+
+    if pyotr_locked:
+        print(f'  {GREEN}[1] "You are a fly, Pyotr. And I am not your America."{RESET}')
+    else:
+        print(f'  {DIM}[1] [Requires less entanglement with Pyotr]{RESET}')
+    print(f'  [2] "Perhaps you are right. Perhaps it was always your game."')
+    print(f'  [3] Pull your hand away. Say nothing.')
+    print()
+
+    _reset_skip()
+    while True:
+        try:
+            c = input(f"  {GREEN}Your answer (1-3): {RESET}").strip()
+            if c == "1" and pyotr_locked:
+                state["pyotr_entangled"] -= 20
+                state["soul"] += 10
+                confrontations += 1
+                state["decisions"].append("refused_pyotr_finally")
+                print()
+                slow_print("  He recoils.")
+                slow_print("  Something raw crosses his face — almost human.")
+                slow_print("  The grief of a man whose idol has spoken")
+                slow_print("  and said: No. Definitively, finally: No.")
+                slow_print("  His fingers release your sleeve.")
+                slow_print("  For the first time since he arrived in this town,")
+                slow_print("  Pyotr Stepanovich has nothing to say.")
+                slow_print("  He shrinks. The worm becomes a worm.")
+                break
+            elif c == "1" and not pyotr_locked:
+                print(f"  {DIM}You cannot choose this. You are too entangled in his web.{RESET}")
+                continue
+            elif c == "2":
+                state["pyotr_entangled"] += 10
+                state["revolutionary_fervor"] += 10
+                state["decisions"].append("yielded_to_pyotr")
+                print()
+                slow_print("  His eyes light up. The fingers tighten.")
+                slow_print('  "I knew it! I always knew!"')
+                slow_print("  He is wrong, of course. It was never his game.")
+                slow_print("  It was nobody's game. That is the horror.")
+                slow_print("  But now, in your last hours, you have given him")
+                slow_print("  exactly what he wanted: permission to believe")
+                slow_print("  you were what he needed you to be.")
+                break
+            elif c == "3":
+                state["ennui"] += 10
+                state["decisions"].append("silent_before_pyotr")
+                print()
+                slow_print("  You pull your hand away.")
+                slow_print("  But he keeps clutching. He always keeps clutching.")
+                slow_print("  Even now, even here, even on your last night,")
+                slow_print("  you cannot quite shake him off.")
+                slow_print("  He will follow you everywhere.")
+                slow_print("  Even into the loft.")
+                break
+        except (ValueError, EOFError):
+            continue
+
+    clamp_stats()
+    print()
+    press_enter()
+
+    # ─── ROUND 5: STEPAN TROFIMOVICH ─────────────────────────
+
+    clear_screen()
+    print(f"""{CYAN}
+    ╔═════════════════════════════════════╗
+    ║  {WHITE}V — STEPAN — "The Healing"{CYAN}         ║
+    ╚═════════════════════════════════════╝{RESET}
+""")
+
+    slow_print("  Your old tutor appears last.")
+    slow_print("  He is wearing his best waistcoat —")
+    slow_print("  the one he wore to the fête, the one")
+    slow_print("  he wore on the road, the one he died in.")
+    slow_print("  He is holding a book. The Gospel of Luke.")
+    print()
+    slow_print("  He does not accuse. He does not tempt.")
+    slow_print("  He reads.")
+    print()
+    slow_print(f'  {DIM}"And there was there one herd of many swine')
+    slow_print(f'   feeding on the mountain; and they besought him')
+    slow_print(f'   that he would suffer them to enter into them.')
+    slow_print(f'   And he suffered them."{RESET}')
+    print()
+    slow_print("  He looks up from the book.")
+    slow_print("  His eyes are wet. They were always wet.")
+    slow_print("  Twenty years he was your tutor. Twenty years")
+    slow_print("  he taught you French and let you down")
+    slow_print("  and loved you in the clumsy, insufficient way")
+    slow_print("  that is the only way he knows.")
+    print()
+    slow_print(f'  {BOLD}"The sick man will be healed, Nicolas."{RESET}')
+    slow_print(f'  {BOLD}"Will you be healed?"{RESET}')
+    print()
+
+    stepan_locked = state["stepan_bond"] >= 15
+
+    if stepan_locked:
+        print(f'  {GREEN}[1] "Read to me, Stepan Trofimovich. I am listening."{RESET}')
+    else:
+        print(f'  {DIM}[1] [Requires stronger bond with Stepan]{RESET}')
+    print(f'  [2] "You were always ridiculous, old man. And always right."')
+    print(f'  [3] "Beauty will not save the world. It did not save you."')
+    print()
+
+    _reset_skip()
+    while True:
+        try:
+            c = input(f"  {GREEN}Your answer (1-3): {RESET}").strip()
+            if c == "1" and stepan_locked:
+                state["soul"] += 20
+                state["ennui"] -= 15
+                confrontations += 1
+                state["decisions"].append("heard_the_gospel")
+                print()
+                slow_print("  He reads.")
+                slow_print("  And you listen.")
+                print()
+                slow_print(f'  {DIM}"And the man out of whom the devils were departed{RESET}')
+                slow_print(f'  {DIM} sat at the feet of Jesus, clothed{RESET}')
+                slow_print(f'  {DIM} and in his right mind...{RESET}')
+                slow_print(f'  {DIM} and they were afraid."{RESET}')
+                print()
+                slow_print("  For one moment — just one —")
+                slow_print("  the emptiness recedes.")
+                slow_print("  Not gone. Not healed. But held at bay")
+                slow_print("  by the voice of a ridiculous old man")
+                slow_print("  reading the words that matter.")
+                slow_print("  It is the closest you have ever come to grace.")
+                break
+            elif c == "1" and not stepan_locked:
+                print(f"  {DIM}You cannot choose this. You never built that bond.{RESET}")
+                continue
+            elif c == "2":
+                state["soul"] += 10
+                state["stepan_bond"] += 5
+                state["decisions"].append("called_stepan_right")
+                print()
+                slow_print("  He smiles through his tears.")
+                slow_print('  "Ridiculous! Yes! Always ridiculous!"')
+                slow_print("  He laughs. It is genuine — the laugh")
+                slow_print("  of a man who has been seen truly")
+                slow_print("  and not found entirely wanting.")
+                slow_print("  But he wanted more for you than accuracy.")
+                slow_print("  He wanted you to listen.")
+                break
+            elif c == "3":
+                state["ennui"] += 15
+                state["soul"] -= 10
+                state["decisions"].append("rejected_stepans_healing")
+                print()
+                slow_print("  He weeps.")
+                slow_print("  He closes the book.")
+                slow_print("  He walks away, slowly, leaning on his umbrella,")
+                slow_print("  back into the darkness from which he came.")
+                slow_print("  You are left alone in the silence.")
+                slow_print("  The candle gutters. The letter waits.")
+                slow_print("  There is no one left to read to you.")
+                break
+        except (ValueError, EOFError):
+            continue
+
+    clamp_stats()
+    print()
+
+    # ─── THE LETTER ───────────────────────────────────────────
+
+    state["confrontations_survived"] = confrontations
+
+    press_enter()
+    clear_screen()
+    print(f"""{CYAN}
+    ╔═════════════════════════════════════╗
+    ║  {WHITE}THE LETTER TO DASHA{CYAN}                ║
+    ╚═════════════════════════════════════╝{RESET}
+""")
+
+    slow_print("  They are gone. All of them.")
+    slow_print("  The room is empty again. The candle burns low.")
+    slow_print("  You sit down and finish the letter.")
+    print()
+
+    if confrontations <= 1:
+        # Cold, clinical — the novel's actual tone
+        slow_print(f'  {DIM}"Dear Darya Pavlovna,"{RESET}')
+        print()
+        slow_print(f'  {DIM}"I have tried my strength everywhere.')
+        slow_print(f'   You advised me to do this, that I might learn')
+        slow_print(f'   to know myself. In testing myself for you')
+        slow_print(f'   and for them, I found my desires are too weak;')
+        slow_print(f'   they cannot guide me."{RESET}')
+        print()
+        slow_print(f'  {DIM}"On a log one may cross a river')
+        slow_print(f'   but not on a chip."{RESET}')
+        print()
+        slow_print("  The letter is perfect. Cold. Clinical.")
+        slow_print("  A spiritual autopsy performed by the patient himself.")
+        slow_print("  There is no warmth in it. No crack in the armor.")
+        slow_print("  Just the precision of a man who has measured his own void")
+        slow_print("  and found the dimensions exact.")
+    elif confrontations <= 3:
+        # Flickers of self-awareness
+        slow_print(f'  {DIM}"Dear Darya Pavlovna,"{RESET}')
+        print()
+        slow_print(f'  {DIM}"I have tried my strength everywhere.')
+        slow_print(f'   My desires are too weak.')
+        slow_print(f'   But tonight I was visited by the faces')
+        slow_print(f'   of those I have touched, and some of them —')
+        slow_print(f'   not all, but some — did not turn away."{RESET}')
+        print()
+        slow_print(f'  {DIM}"Perhaps that is something. I do not know.')
+        slow_print(f'   I have never known what anything means."{RESET}')
+        print()
+        slow_print("  The letter shows cracks. Flickers of something")
+        slow_print("  that might be honesty, or might be")
+        slow_print("  the last performance of a consummate actor.")
+        slow_print("  Even you are not sure which.")
+    else:
+        # Warmer, more honest
+        slow_print(f'  {DIM}"Dear Dasha,"{RESET}')
+        print()
+        slow_print(f'  {DIM}"I have tried my strength everywhere,')
+        slow_print(f'   and tonight I found it in the strangest place —')
+        slow_print(f'   in the faces of those I failed.')
+        slow_print(f'   They came to me and I answered them.')
+        slow_print(f'   Not well. Not enough. But I answered."{RESET}')
+        print()
+        slow_print(f'  {DIM}"I still intend to go to Uri.')
+        slow_print(f'   I still know what I am. But for one night,')
+        slow_print(f'   in this room, with this candle,')
+        slow_print(f'   something was not empty."{RESET}')
+        print()
+        slow_print("  The letter is different.")
+        slow_print("  Still the letter of a man walking toward the loft.")
+        slow_print("  But written by a hand that trembled.")
+        slow_print("  And a trembling hand is a living hand.")
+
+    print()
+    slow_print(f"  {DIM}{'═' * 50}{RESET}")
+    print()
+    slow_print(f"  {BOLD}Confrontations survived: {confrontations} of 5{RESET}")
+    print()
+    if confrontations == 5:
+        slow_print(f"  {GREEN}Every ghost answered. Every bond held.{RESET}")
+    elif confrontations >= 3:
+        slow_print(f"  {YELLOW}Some bonds held. Some doors opened.{RESET}")
+    elif confrontations >= 1:
+        slow_print(f"  {MAGENTA}Most ghosts turned away unanswered.{RESET}")
+    else:
+        slow_print(f"  {RED}Silence. From beginning to end, silence.{RESET}")
+
+    show_status()
+    press_enter()
+
+
+# ═══════════════════════════════════════════════════════════════
 #  THE RECKONING — STAVROGIN'S END
 # ═══════════════════════════════════════════════════════════════
+
+def generate_score_card(ending_title, human_count):
+    """Generate a shareable ASCII score card for screenshots."""
+    cs = state.get("confrontations_survived", 0)
+
+    # Score calculation (0-999 scale)
+    raw = (
+        state["soul"] * 2
+        + cs * 100
+        + human_count * 25
+        + state["tea_consumed"] * 5
+        - state["ennui"]
+        - state["revolutionary_fervor"]
+        - state["pyotr_entangled"] * 2
+    )
+    score = max(0, min(999, raw))
+
+    # Ghost bar
+    ghost_filled = "█" * cs
+    ghost_empty = "░" * (5 - cs)
+    ghost_bar = f"{ghost_filled}{ghost_empty}"
+
+    # Score bar (20 chars wide, proportional to 999)
+    bar_len = 20
+    filled = min(int(score / 999 * bar_len), bar_len)
+    score_bar = "█" * filled + "░" * (bar_len - filled)
+
+    # Superlative awards — pick top 3
+    awards = []
+    if state.get("confessed_to_tikhon") and "heard_the_gospel" in state["decisions"]:
+        awards.append("The Confessor")
+    if cs >= 4:
+        awards.append("Ghost Whisperer")
+    if state["soul"] >= 80:
+        awards.append("Most Soulful")
+    if state.get("marya_bond_peak", 0) >= 15:
+        awards.append("Holy Fool's Prince")
+    if state["stepan_bond"] >= 15 and state["shatov_bond"] >= 15:
+        awards.append("Faithful Friend")
+    if "fired_air_three_times" in state["decisions"]:
+        awards.append("The Duellist")
+    if state["liza_bond"] >= 10:
+        awards.append("Breaker of Hearts")
+    if state["tea_consumed"] >= 8:
+        awards.append("Tea Connoisseur")
+    if state["revolutionary_fervor"] >= 60:
+        awards.append("Revolutionary")
+    if state["ennui"] >= 80:
+        awards.append("The Nihilist")
+    if state["pyotr_entangled"] >= 40:
+        awards.append("Pyotr's Puppet")
+    if state["ennui"] >= 60 and state["soul"] <= 30:
+        awards.append("The Empty Man")
+    awards = awards[:3]
+
+    # Performance description
+    if ending_title == "THE PENITENT":
+        perf = "Against all odds, you reached toward grace."
+    elif ending_title == "THE WANDERER" and cs >= 4:
+        perf = "You touched something real. Almost enough."
+    elif ending_title == "THE WANDERER":
+        perf = "A few genuine moments in a sea of emptiness."
+    elif ending_title == "THE POSSESSED":
+        perf = "The demons did their work from within."
+    else:
+        perf = "Nothing, from beginning to end."
+
+    # Build award lines
+    if len(awards) >= 2:
+        award_line1 = f"  * {awards[0]:<20} * {awards[1]}"
+        award_line2 = f"  * {awards[2]}" if len(awards) >= 3 else ""
+    elif len(awards) == 1:
+        award_line1 = f"  * {awards[0]}"
+        award_line2 = ""
+    else:
+        award_line1 = f"  (No awards earned)"
+        award_line2 = ""
+
+    # Tea display
+    tea_icons = "T" * min(state["tea_consumed"], 10)
+
+    # Print the card
+    print(f"""
+  {BOLD}╔══════════════════════════════════════════════════╗
+  ║                                                  ║
+  ║       Д Е М О Н Ы  /  D E M O N S              ║
+  ║           Б Е С Ы  /  THE POSSESSED             ║
+  ║                                                  ║
+  ║  ┌──────────────────────────────────────────┐    ║
+  ║  │  SCORE:  {score_bar}  {score:>3}    │    ║
+  ║  │  ENDING: {ending_title:<33}│    ║
+  ║  │  GHOSTS: {ghost_bar}  {cs}/5                    │    ║
+  ║  └──────────────────────────────────────────┘    ║
+  ║                                                  ║
+  ║  {award_line1:<48}║
+  ║  {award_line2:<48}║
+  ║                                                  ║
+  ║  {DIM}"{perf}"{RESET}{BOLD}  ║
+  ║                                                  ║
+  ║  Soul: {state['soul']:<5} Ennui: {state['ennui']:<5} Tea: {state['tea_consumed']:<4}       ║
+  ║  Decisions: {len(state['decisions']):<4} Human moments: {human_count:<4}        ║
+  ║                                                  ║
+  ║  {DIM}After Dostoevsky, 1872.  Garnett translation.{RESET}{BOLD}   ║
+  ║  {DIM}github.com/timhwang/demons-interactive{RESET}{BOLD}           ║
+  ║                                                  ║
+  ╚══════════════════════════════════════════════════╝{RESET}
+""")
+
 
 def chapter_11_reckoning():
     """The final chapter. Stavrogin's end."""
@@ -2957,32 +3997,10 @@ def chapter_11_reckoning():
 
     slow_print(f"  {BOLD}EPILOGUE: CONCLUSION{RESET}")
     print()
-    slow_print("  Everything unravels quickly.")
-    slow_print("  Lyamshin breaks. He crawls to the police on his knees,")
-    slow_print("  sobbing, confessing everything.")
-    slow_print("  The body in the pond is found. Shatov's cap on the shore.")
-    slow_print("  Pyotr Stepanovich escapes abroad. Of course he does.")
-    slow_print("  The others are arrested, one by one.")
+    slow_print("  The letter is sealed. The candle is out.")
+    slow_print("  There is nothing left to write, nothing left to say.")
     print()
-    slow_print("  Liza — beautiful Liza — went to see the fire.")
-    slow_print("  A crowd, maddened by rumors, recognized her.")
-    slow_print("  They beat her. She died on the street.")
-    print()
-    slow_print("  You wrote a letter to Dasha.")
-    slow_print("  You told her about the house in Uri.")
-    slow_print("  You told her the truth about yourself:")
-    print()
-    slow_print(f'  {DIM}"I have tried my strength everywhere.')
-    slow_print(f'   My desires are too weak; they cannot guide me.')
-    slow_print(f'   On a log one may cross a river')
-    slow_print(f'   but not on a chip."{RESET}')
-    print()
-    slow_print(f'  {DIM}"I know I ought to kill myself,')
-    slow_print(f'   to brush myself off the earth like a nasty insect;')
-    slow_print(f'   but I am afraid of suicide,')
-    slow_print(f'   for I am afraid of showing greatness of soul."{RESET}')
-    print()
-    slow_print("  Varvara Petrovna and Dasha went to Skvoreshniki.")
+    slow_print("  Varvara Petrovna and Dasha came to Skvoreshniki the next morning.")
     slow_print("  They found all the doors open.")
     slow_print("  They went upstairs. Then to the loft.")
     print()
@@ -2996,16 +4014,8 @@ def chapter_11_reckoning():
     slow_print("  rejected all idea of insanity.")
     print()
 
-    # Calculate ending
-    total_score = (
-        state["soul"]
-        + (state["shatov_bond"] * 2)
-        + state["stepan_bond"]
-        + state["marya_bond"]
-        - state["ennui"]
-        - state["revolutionary_fervor"]
-        - state["pyotr_entangled"]
-    )
+    # Calculate ending based on confrontations survived
+    cs = state.get("confrontations_survived", 0)
 
     print(f"  {DIM}{'═' * 55}{RESET}")
     show_status()
@@ -3013,22 +4023,39 @@ def chapter_11_reckoning():
     print(f"  {DIM}{'═' * 55}{RESET}")
     print()
 
-    if state.get("confessed_to_tikhon") and total_score > 30:
+    if cs >= 4 and state.get("confessed_to_tikhon") and "heard_the_gospel" in state["decisions"]:
         ending_title = "THE PENITENT"
         print(f"  {GREEN}{BOLD}  ★ ★ ★ ★ ★  THE PENITENT  ★ ★ ★ ★ ★{RESET}")
         print()
-        slow_print("  You went to Tikhon. You tried to confess.")
+        slow_print("  You went to Tikhon. You heard the Gospel.")
+        slow_print("  And on your last night, when they came for you —")
+        slow_print("  the ghosts of everyone you touched —")
+        slow_print("  you answered them. Not perfectly. Not enough.")
+        slow_print("  But you answered.")
         slow_print("  Perhaps it was pride, as the bishop said.")
-        slow_print("  But you went. You reached toward something.")
-        slow_print("  Not God, perhaps. Not grace. But the direction")
-        slow_print("  in which grace might be found, by someone braver,")
-        slow_print("  someone less corroded by their own intelligence.")
+        slow_print("  But you reached toward something.")
         slow_print("  The silk cord was still there. You know that.")
-        slow_print("  But perhaps — only perhaps — there was a moment")
-        slow_print("  in the monastery cell when another ending was possible.")
-        slow_print(f"  {DIM}Dostoevsky cut this chapter from the published novel.{RESET}")
+        slow_print("  But perhaps — only perhaps — for one night,")
+        slow_print("  in one room, with one candle and five ghosts,")
+        slow_print("  another ending was possible.")
+        slow_print(f"  {DIM}Dostoevsky cut the confession chapter from the novel.{RESET}")
         slow_print(f"  {DIM}Even fiction cannot bear too much hope.{RESET}")
-    elif total_score > 15:
+    elif cs >= 4:
+        ending_title = "THE WANDERER"
+        print(f"  {YELLOW}{BOLD}  ★ ★ ★ ★ ☆  THE WANDERER  ★ ★ ★ ★ ☆{RESET}")
+        print()
+        slow_print("  On your last night, you answered almost everyone.")
+        slow_print("  Shatov, Kirillov, Marya, Pyotr, Stepan —")
+        slow_print("  you built enough to face them.")
+        slow_print("  The letter to Dasha was warmer than the novel's.")
+        slow_print("  But without the confession, without the Gospel,")
+        slow_print("  the warmth was not enough to reach the loft")
+        slow_print("  and cut the cord.")
+        slow_print("  In the end, the citizen of the canton of Uri")
+        slow_print("  was found at Skvoreshniki.")
+        slow_print(f"  {DIM}But the bonds you built were real.{RESET}")
+        slow_print(f"  {DIM}That changes nothing. And everything.{RESET}")
+    elif cs == 3:
         ending_title = "THE WANDERER"
         print(f"  {YELLOW}{BOLD}  ★ ★ ★ ☆ ☆  THE WANDERER  ★ ★ ★ ☆ ☆{RESET}")
         print()
@@ -3043,7 +4070,7 @@ def chapter_11_reckoning():
         slow_print(f"  {DIM}The swine went over the cliff.{RESET}")
         slow_print(f"  {DIM}But the sick man — Russia — will be healed.{RESET}")
         slow_print(f"  {DIM}Stepan Trofimovich said so.{RESET}")
-    elif total_score > -15:
+    elif cs == 2:
         ending_title = "THE POSSESSED"
         print(f"  {MAGENTA}{BOLD}  ★ ★ ☆ ☆ ☆  THE POSSESSED  ★ ★ ☆ ☆ ☆{RESET}")
         print()
@@ -3067,6 +4094,7 @@ def chapter_11_reckoning():
         slow_print("  the entire town into itself — Shatov, Kirillov,")
         slow_print("  Marya Timofeyevna, Liza, Lebyadkin, Stepan Trofimovich.")
         slow_print("  All of them swallowed by the void at your center.")
+        slow_print("  On your last night, the ghosts came and you could not answer.")
         slow_print("  Pyotr Verkhovensky used you and discarded you.")
         slow_print("  Your mother found you in the loft.")
         slow_print("  The note said no one was to blame.")
@@ -3087,6 +4115,7 @@ def chapter_11_reckoning():
     print(f"                             Shatov's wife, Shatov's baby.")
     print(f"                             And you.")
     print(f"  Pyotr Verkhovensky:        Escaped abroad. Naturally.")
+    print(f"  Confrontations survived:   {state.get('confrontations_survived', 0)} of 5")
     human_count = sum(1 for d in state["decisions"] if d in [
         "greeted_stepan", "protected_marya", "accepted_the_slap",
         "seized_shatovs_arms", "called_kirillov_mad", "acknowledged_kirillov",
@@ -3098,6 +4127,8 @@ def chapter_11_reckoning():
         "fired_air_three_times", "offered_hand_to_gaganov",
         "held_lizas_hand", "denied_to_mother",
         "sat_with_stepan", "gave_stepan_coat", "told_stepan_about_varvara",
+        "answered_shatov", "honored_kirillov", "loved_marya",
+        "refused_pyotr_finally", "heard_the_gospel",
     ])
     print(f"  Genuine human moments:     {human_count}")
     print()
@@ -3182,6 +4213,32 @@ def chapter_11_reckoning():
         "gave_stepan_coat": "  • Gave Stepan your coat in the rain",
         "told_stepan_about_varvara": "  • Told Stepan she was looking for him",
         "passed_stepan_by": "  • Passed Stepan by on the road",
+        # The Last Night — Final Boss confrontations
+        "answered_shatov": '  • ✦ Answered Shatov: "I heard you, Ivan"',
+        "denied_shatov_again": '  • ✦ Told Shatov\'s ghost: "I do not believe"',
+        "silent_before_shatov": "  • ✦ Could not answer Shatov's question",
+        "honored_kirillov": '  • ✦ Told Kirillov: "You were braver than I am"',
+        "dismissed_kirillovs_proof": '  • ✦ Dismissed Kirillov: "Your logic destroyed you"',
+        "questioned_kirillovs_freedom": '  • ✦ Told Kirillov: "Freedom without purpose..."',
+        "loved_marya": '  • ✦ Told Marya\'s ghost: "I loved you"',
+        "apologized_to_marya": '  • ✦ Apologized to Marya: "I married you on a dare"',
+        "admitted_lovelessness": '  • ✦ Admitted to Marya: "I have never loved anyone"',
+        "refused_pyotr_finally": '  • ✦ Refused Pyotr: "You are a fly"',
+        "yielded_to_pyotr": '  • ✦ Yielded to Pyotr on the last night',
+        "silent_before_pyotr": "  • ✦ Pulled away from Pyotr (he kept clutching)",
+        "heard_the_gospel": '  • ✦ Listened to Stepan read the Gospel of Luke',
+        "called_stepan_right": '  • ✦ Called Stepan "always ridiculous, always right"',
+        "rejected_stepans_healing": '  • ✦ Rejected Stepan: "Beauty will not save the world"',
+        # Fatal decisions
+        "walked_into_bullet": f"  • {RED}☠ Walked into Gaganov's bullet{RESET}",
+        "turned_back_on_fedka": f"  • {RED}☠ Turned your back on Fedka (fatal){RESET}",
+        "walked_into_fire": f"  • {RED}☠ Ran into the Lebyadkin fire{RESET}",
+        # Soul deaths
+        "destroyed_shatov": f"  • {RED}☠ Told Shatov: 'There is nothing' (THE VOID){RESET}",
+        "became_ivan_tsarevitch": f"  • {RED}☠ Accepted Pyotr's crown (CONSUMED){RESET}",
+        "endorsed_murder": f"  • {RED}☠ Endorsed Shatov's murder (THE ACCOMPLICE){RESET}",
+        "watched_murder": f"  • {RED}☠ Watched Shatov die at the pond (THE WITNESS){RESET}",
+        "false_confession": f"  • {RED}☠ False confession — became The Demon{RESET}",
     }
     for d in state["decisions"]:
         if d in decision_labels:
@@ -3211,6 +4268,10 @@ def chapter_11_reckoning():
   ╚══════════════════════════════════════════════════════╝{RESET}
 """)
 
+    # Shareable score card
+    generate_score_card(ending_title, human_count)
+    press_enter()
+
     play_again = input(f"  {GREEN}Play again? (y/n): {RESET}").strip().lower()
     return play_again == "y"
 
@@ -3223,28 +4284,27 @@ def chapter_11_reckoning():
 # The secret Tikhon chapter is handled conditionally at runtime,
 # not included in this list.
 CHAPTERS = [
-    ("The Return",              chapter_1_return),
-    ("The Drawing Room",        chapter_2_drawing_room),
-    ("The Duel",                chapter_new_duel),
-    ("Night — Kirillov",        chapter_3_night_kirillov),
-    ("Night — Shatov",          chapter_4_night_shatov),
-    ("Night — Lebyadkins",      chapter_5_night_lebyadkins),
-    ("Ivan the Tsarevitch",     chapter_6_ivan_tsarevitch),
-    ("The Meeting",             chapter_7_meeting),
-    ("The Fête",                chapter_8_fete),
-    ("Liza",                    chapter_new_liza),
-    ("A Busy Night",            chapter_9_shatov_murder),
-    # index 11 = Aftermath
-    ("The Aftermath",           chapter_new_aftermath),
-    ("Stepan's Wandering",      chapter_10_stepan_wandering),
-    # index 13 = Conclusion (handled specially)
-    ("Conclusion",              chapter_11_reckoning),
+    ("The Return",              chapter_1_return),         # 0
+    ("The Drawing Room",        chapter_2_drawing_room),   # 1
+    ("The Duel",                chapter_new_duel),         # 2
+    ("Night — Kirillov",        chapter_3_night_kirillov), # 3
+    ("Night — Shatov",          chapter_4_night_shatov),   # 4
+    ("Night — Lebyadkins",      chapter_5_night_lebyadkins),# 5
+    ("Ivan the Tsarevitch",     chapter_6_ivan_tsarevitch),# 6
+    ("The Meeting",             chapter_7_meeting),        # 7
+    ("The Fête",                chapter_8_fete),           # 8
+    ("Liza",                    chapter_new_liza),         # 9
+    ("A Busy Night",            chapter_9_shatov_murder),  # 10
+    ("The Aftermath",           chapter_new_aftermath),    # 11
+    ("Stepan's Wandering",      chapter_10_stepan_wandering),# 12
+    ("The Last Night",          chapter_final_boss),       # 13 — Final Boss
+    ("Conclusion",              chapter_11_reckoning),     # 14
 ]
 
 # Indices for special chapters
 _IDX_SHATOV_MURDER = 10   # "A Busy Night"
 _IDX_AFTERMATH = 11        # "The Aftermath"
-_IDX_CONCLUSION = 13       # "Conclusion"
+_IDX_CONCLUSION = 14       # "Conclusion"
 
 DEFAULT_STATE = {
     "ennui": 40,
@@ -3262,22 +4322,30 @@ DEFAULT_STATE = {
     "took_fedkas_offer": False,
     "gave_money_to_lebyadkin": False,
     "confessed_to_tikhon": False,
+    "marya_bond_peak": 0,
+    "confrontations_survived": 0,
 }
 
 
 def main():
+    global _current_chapter_index
     while True:
         # Reset state
         state.update(DEFAULT_STATE)
         state["decisions"] = []  # ensure a fresh list (not the default's)
 
-        choice = title_screen()
+        result = title_screen()
         start_index = 0
 
-        if choice == "continue":
-            saved = load_game()
+        if result and result.startswith("load:"):
+            # Loading a save (auto or slot)
+            saved = None
+            if result == "load:auto":
+                saved = load_game()
+            else:
+                slot_num = int(result.split(":")[1])
+                saved = load_slot(slot_num)
             if saved:
-                # Restore state from save
                 for k, v in saved["state"].items():
                     state[k] = v
                 start_index = saved["chapter_index"]
@@ -3286,37 +4354,40 @@ def main():
                 slow_print(f"  {DIM}Chapter: {CHAPTERS[start_index][0]}{RESET}")
                 dramatic_pause(1.5)
 
-        for i in range(start_index, len(CHAPTERS)):
-            name, func = CHAPTERS[i]
+        try:
+            for i in range(start_index, len(CHAPTERS)):
+                _current_chapter_index = i
+                name, func = CHAPTERS[i]
 
-            # Secret Tikhon chapter — insert after Shatov murder, before Aftermath
-            if i == _IDX_AFTERMATH and check_tikhon_unlock():
-                chapter_secret_tikhon()
+                # Secret Tikhon chapter — insert after Shatov murder, before Aftermath
+                if i == _IDX_AFTERMATH and check_tikhon_unlock():
+                    chapter_secret_tikhon()
 
-            # Run the chapter
-            if i == _IDX_CONCLUSION:
-                # Conclusion returns True/False for play-again
-                if not func():
-                    clear_screen()
-                    slow_print(f"\n  {DIM}The candle goes out. The samovar cools.")
-                    slow_print(f"  The silk cord hangs in the loft at Skvoreshniki.{RESET}")
-                    slow_print(f"  {DIM}Somewhere on the high road, an old man with an umbrella{RESET}")
-                    slow_print(f"  {DIM}asks a stranger to read to him from the Gospels.{RESET}")
-                    slow_print(f"  {DIM}The sick man will be healed.{RESET}")
-                    slow_print(f"  {DIM}Russia endures. It always endures.{RESET}")
-                    print()
-                    delete_save()
-                    print(f"  {GREEN}Farewell. May your soul be heavier than your ennui.{RESET}\n")
-                    return
+                # Run the chapter
+                if i == _IDX_CONCLUSION:
+                    # Conclusion returns True/False for play-again
+                    if not func():
+                        clear_screen()
+                        slow_print(f"\n  {DIM}The candle goes out. The samovar cools.")
+                        slow_print(f"  The silk cord hangs in the loft at Skvoreshniki.{RESET}")
+                        slow_print(f"  {DIM}Somewhere on the high road, an old man with an umbrella{RESET}")
+                        slow_print(f"  {DIM}asks a stranger to read to him from the Gospels.{RESET}")
+                        slow_print(f"  {DIM}The sick man will be healed.{RESET}")
+                        slow_print(f"  {DIM}Russia endures. It always endures.{RESET}")
+                        print()
+                        delete_save()
+                        print(f"  {GREEN}Farewell. May your soul be heavier than your ennui.{RESET}\n")
+                        return
+                    else:
+                        delete_save()
+                        break  # restart the while loop
                 else:
-                    delete_save()
-                    break  # restart the while loop
-            else:
-                func()
-                # Auto-save after each chapter
-                save_game(i + 1)
-
-    # If we fall through (play again), main() has already been re-entered via the while loop
+                    func()
+                    # Auto-save after each chapter
+                    save_game(i + 1)
+        except GameOverException:
+            # Fatal decision — return to title screen, save is preserved
+            continue
 
 
 if __name__ == "__main__":
