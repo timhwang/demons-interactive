@@ -436,19 +436,31 @@ def chapter_1_return():
     """Part I, Ch.1-2: Stavrogin returns to the provincial town."""
     clear_screen()
     print(f"""{CYAN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌────────────────────┐                            ║
-    ║     │  ╬                 │   {WHITE}Autumn, 186-{CYAN}             ║
-    ║     │  ║   ┌──┐  ┌──┐   │   {WHITE}Skvoreshniki{CYAN}             ║
-    ║     │ ═╬═  │  │  │  │   │   {WHITE}Estate of Varvara{CYAN}        ║
-    ║     │  ║   │  │  │  │   │   {WHITE}Petrovna Stavrogina{CYAN}      ║
-    ║     │  ║   └──┘  └──┘   │                             ║
-    ║     │  ╨   ┌────────┐   │   {DIM}The birches have turned{CYAN}   ║
-    ║     │      │ ▓▓▓▓▓▓ │   │   {DIM}gold, as if rehearsing{CYAN}   ║
-    ║     └──────┴────────┴───┘   {DIM}for a fire.{CYAN}              ║
-    ║     ░░░░░░░░░░░░░░░░░░░░                             ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+                         .              *        .          *
+           *       .          .                        .
+      .                  _____________________________
+                        /                             \\        {WHITE}Autumn, 186-{CYAN}
+           .           /  Skvoreshniki                 \\       {WHITE}Estate of Varvara{CYAN}
+     *                /   Estate                        \\      {WHITE}Petrovna Stavrogina{CYAN}
+                     /                                   \\
+       _.---._      |  _____    _____    _____    _____   |
+      / ,---. \\     | |     |  |     |  |     |  |     |  |
+     / /     \\ \\    | | [ ] |  | [ ] |  | [ ] |  | [ ] |  |
+    | |       | |   | |     |  |     |  |     |  |     |  |
+    | |  {WHITE}CHAPEL{CYAN} | |   | |_____|  |_____|  |_____|  |_____|  |
+    | |       | |   |   __     ___     ___     ___        |
+     \\ \\  +  / /    |  |  |   |   |   |   |   |   |       |
+      \\ '---' /     |  |  |   |   |   |   |   |   |       |
+       '-----'      |  |__|   |___|   |___|   |___|       |
+    ______|_______   |____________ __ _______________ _____|
+   /       \\      \\  |            |  |               |
+  / {DIM}birches{CYAN}  \\      \\_|____________|  |_______________|
+  \\ {DIM}turning{CYAN}  /      /            ____
+   \\ {DIM}gold{CYAN}   /     _/         ___/    \\___        ___/
+    \\______/     /      ____/    {DIM}gate{CYAN}    \\______/
+  ~~~~~~~~~~~~~~/ _____/ .  .  .  .  .  . \\_________
+  .:. .:. .:. .:/.:. .:. .:. .:. .:. .:. .:. .:. .:\\
+               /    {DIM}A carriage approaches...{CYAN}          \\{RESET}
 """)
 
     slow_print(f"  {BOLD}PART I")
@@ -584,20 +596,26 @@ def chapter_2_drawing_room():
     """Part I, Ch.5: The Subtle Serpent — the explosive drawing-room scene."""
     clear_screen()
     print(f"""{CYAN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║    ┌────────────────────────────────┐                 ║
-    ║    │  ☆  {WHITE}The Drawing Room{CYAN}      ☆   │   {WHITE}Sunday{CYAN}        ║
-    ║    │     ╔════╗                     │   {WHITE}Afternoon{CYAN}    ║
-    ║    │     ║████║  ┌──┐ ┌──┐ ┌──┐   │                 ║
-    ║    │     ║████║  │░░│ │░░│ │░░│   │   {DIM}Varvara{CYAN}       ║
-    ║    │     ╚════╝  └──┘ └──┘ └──┘   │   {DIM}Petrovna's{CYAN}    ║
-    ║    │    {WHITE}SAMOVAR{CYAN}                     │   {DIM}Salon{CYAN}         ║
-    ║    │     ░░░░░    ▓▓▓▓▓▓▓▓▓▓▓    │                  ║
-    ║    │              {WHITE}DIVAN{CYAN}            │   {DIM}"A catastrophe{CYAN} ║
-    ║    └────────────────────────────────┘   {DIM} was inevitable."{CYAN}║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  {WHITE}THE DRAWING ROOM{CYAN}                    {DIM}Sunday Afternoon{CYAN}              ║
+  ╠══════════════════════════════════════════════════════════════════╣
+  ║                                                                  ║
+  ║     {WHITE}|{CYAN}  .---.  .---.  .---.         _____         .---.  .---. {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}  |{DIM}   {CYAN}|  |{DIM}   {CYAN}|  |{DIM}   {CYAN}|        / ___ \\        |{DIM}   {CYAN}|  |{DIM}   {CYAN}| {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}  '---'  '---'  '---'       | |   | |       '---'  '---' {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}  {DIM}chairs{CYAN}                     | |{WHITE}////{CYAN}| |      {DIM}chairs{CYAN}       {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}                             | |{WHITE}////{CYAN}| |                    {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}    o   o              o     |_|____|_|    o        o    {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}   /|\\ /|\\            /|\\     {WHITE}SAMOVAR{CYAN}    /|\\      /|\\   {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}   {DIM}Liza Mavriky    Stepan{CYAN}               {DIM}Varvara   ???{CYAN}  {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}                                                         {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}  ===={WHITE}[  THE DIVAN  ]{CYAN}====    .------.                   {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}                             | {WHITE}DOOR{CYAN} |<-- {DIM}it swings open{CYAN}  {WHITE}|{CYAN}  ║
+  ║     {WHITE}|{CYAN}_____________________________|______|____________________{WHITE}|{CYAN}  ║
+  ║                                                                  ║
+  ║     {DIM}"Who is this woman?" Varvara demands.{CYAN}                       ║
+  ║     {DIM}Every eye turns to you.{CYAN}                                     ║
+  ╚══════════════════════════════════════════════════════════════════╝{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER II: THE SUBTLE SERPENT{RESET}")
@@ -788,23 +806,31 @@ def chapter_new_duel():
     """Part II, Ch.3: The duel with Gaganov Jr."""
     clear_screen()
     print(f"""{RED}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │                          │   {WHITE}Wednesday{RED}         ║
-    ║     │  ○              ○        │   {WHITE}Brykov Forest{RED}     ║
-    ║     │ /|\\  ←─ 20 ─→ /|\\       │   {WHITE}Dawn{RED}              ║
-    ║     │ / \\            / \\       │                      ║
-    ║     │                          │   {DIM}Two pistols.{RED}       ║
-    ║     │ {WHITE}STAVROGIN{RED}    {WHITE}GAGANOV{RED}      │   {DIM}Three exchanges.{RED}   ║
-    ║     │                          │   {DIM}One insult that{RED}    ║
-    ║     │   ○            ○         │   {DIM}cannot be washed{RED}   ║
-    ║     │  /|\\          /|\\        │   {DIM}away.{RED}              ║
-    ║     │  {WHITE}KIRILLOV{RED}    {WHITE}MAVRIKY{RED}     │                      ║
-    ║     │  {DIM}(seconds){RED}                │                      ║
-    ║     └──────────────────────────┘                      ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+                                  {DIM}. Dawn .{RED}
+                              .              .
+               {DIM}~~trees~~{RED}   .    {WHITE}Brykov Forest{RED}    .   {DIM}~~trees~~{RED}
+              /|||||||\\                           /|||||||\\
+             /|||||||||\\   .                 .   /|||||||||\\
+            /|||||||||||\\                       /|||||||||||\\
+           /|||||||||||||\\                     /|||||||||||||\\
+          /|||||||||||||||\\        {DIM}fog{RED}        /|||||||||||||||\\
+         /|||||||||||||||||\\   . . . . . .   /|||||||||||||||||\\
+        .:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:
+
+              o                           o
+             /|\\     <--- {WHITE}20 paces{RED} --->  /|\\
+             / \\                          / \\
+           {WHITE}STAVROGIN{RED}                    {WHITE}GAGANOV{RED}
+
+                        o         o
+                       /|\\       /|\\
+                       / \\       / \\
+                     {DIM}Kirillov   Mavriky{RED}
+                      {DIM}(seconds){RED}
+
+        .:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:
+        {DIM}Three exchanges. He aims to kill. You aim to miss.{RED}
+        {DIM}The question is: what does that prove?{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER III: THE DUEL{RESET}")
@@ -994,20 +1020,31 @@ def chapter_3_night_kirillov():
     """Part II, Ch.1: Night — Stavrogin visits Kirillov."""
     clear_screen()
     print(f"""{MAGENTA}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │         ╬                │   {WHITE}Monday Night{MAGENTA}       ║
-    ║     │         ║     🕯         │   {WHITE}Filipov's House{MAGENTA}    ║
-    ║     │        ═╬═    ○          │   {WHITE}Bogoyavlensky St.{MAGENTA}  ║
-    ║     │         ║    /|\\         │                      ║
-    ║     │         ║    / \\         │   {DIM}Kirillov's lodging.{MAGENTA}║
-    ║     │                          │   {DIM}Bare walls. One{MAGENTA}    ║
-    ║     │   {WHITE}A samovar. A candle.{MAGENTA}  │   {DIM}candle. Tea.{MAGENTA}       ║
-    ║     │   {WHITE}India-rubber ball.{MAGENTA}    │   {DIM}An india-rubber{MAGENTA}   ║
-    ║     └──────────────────────────┘   {DIM}ball on the floor.{MAGENTA}║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+  {DIM}Monday Night                          Filipov's House{MAGENTA}
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  {DIM}Bogoyavlensky Street{MAGENTA}
+
+         _____________________________________________
+        |  .     .     .     .     .     .     .     |
+        | .     .     .     .     .     .     .    . |
+        |_____________________________________________|
+        |          |              |                   |
+        |          |              |                   |
+        |  {WHITE}Kirillov's Room{MAGENTA}       |     {DIM}(Shatov{MAGENTA}       |
+        |          |              |      {DIM}upstairs){MAGENTA}    |
+        |    ___   |   _          |                   |
+        |   | . |  |  ( )  o     |                   |
+        |   | . |  |  |_| /|\\   |                   |
+        |   |___|  |       / \\   |                   |
+        |  {DIM}samovar{MAGENTA}  | {DIM}ball{MAGENTA}         |                   |
+        |          |              |                   |
+        |__________|______________|___________________|
+                   |
+           ________|________
+          |  {DIM}A bare room.{MAGENTA}    |
+          |  {DIM}One candle.{MAGENTA}     |
+          |  {DIM}Tea. An india-{MAGENTA}  |
+          |  {DIM}rubber ball.{MAGENTA}    |
+          |_________________|{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER III: NIGHT — KIRILLOV{RESET}")
@@ -1160,21 +1197,28 @@ def chapter_4_night_shatov():
     """Part II, Ch.1 continued: Night — Stavrogin visits Shatov."""
     clear_screen()
     print(f"""{CYAN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │  🕯                      │   {WHITE}Same Night{CYAN}        ║
-    ║     │       ○       ○          │   {WHITE}Upstairs{CYAN}          ║
-    ║     │      /|\\     /|\\         │   {WHITE}Filipov's House{CYAN}   ║
-    ║     │      / \\     / \\         │                      ║
-    ║     │                          │   {DIM}Shatov's garret.{CYAN}  ║
-    ║     │   ┌────┐  ┌────────┐    │   {DIM}A revolver on{CYAN}     ║
-    ║     │   │BOOK│  │ ▓▓▓▓▓▓ │    │   {DIM}the shelf.{CYAN}        ║
-    ║     │   │BOOK│  │  BED   │    │   {DIM}Three bookshelves.{CYAN}║
-    ║     │   │BOOK│  │ ▓▓▓▓▓▓ │    │                      ║
-    ║     └───┴────┴──┴────────┴────┘                      ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+  {DIM}Same Night                                 Upstairs{CYAN}
+  ~~~~~~~~~~~                          {DIM}Filipov's House{CYAN}
+
+              ___________________________________________
+             /                                           \\
+            /  {WHITE}SHATOV'S GARRET{CYAN}                             \\
+           /                                               \\
+          |  .------. .------. .------.                     |
+          |  | {WHITE}BOOK{CYAN} | | {WHITE}BOOK{CYAN} | | {WHITE}BOOK{CYAN} |   .____________.  |
+          |  | {WHITE}BOOK{CYAN} | | {WHITE}BOOK{CYAN} | | {WHITE}BOOK{CYAN} |   | //////////// |  |
+          |  | {WHITE}BOOK{CYAN} | | {WHITE}BOOK{CYAN} | | {WHITE}BOOK{CYAN} |   | ///{WHITE}BED{CYAN}////// |  |
+          |  '------' '------' '------'   | //////////// |  |
+          |                                '____________'  |
+          |                                                |
+          |      o               o                         |
+          |     /|\\             /|\\      .---.             |
+          |     / \\             / \\      | {RED}*{CYAN} |  {DIM}revolver{CYAN}   |
+          |   {DIM}Stavrogin{CYAN}       {DIM}Shatov{CYAN}      '---'  {DIM}on shelf{CYAN}   |
+          |                                                |
+           \\______________________________________________/
+             {DIM}"Do you know," he begins, trembling,{CYAN}
+             {DIM}"do you know that you told me —"{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER IV: NIGHT — SHATOV{RESET}")
@@ -1368,20 +1412,29 @@ def chapter_5_night_lebyadkins():
     """Part II, Ch.2: Night continued — the visit to the Lebyadkins and Fedka."""
     clear_screen()
     print(f"""{CYAN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │  🕯         ┌──┐        │   {WHITE}Past Midnight{CYAN}     ║
-    ║     │   ○         │  │  ◊     │   {WHITE}Across the River{CYAN}   ║
-    ║     │  /|\\  ○     │  │        │   {WHITE}Lebyadkin's Rooms{CYAN}  ║
-    ║     │  / \\ /|\\    └──┘        │                      ║
-    ║     │      / \\                │   {DIM}The riverside{CYAN}      ║
-    ║     │  {WHITE}MARYA  CAPTAIN{CYAN}         │   {DIM}quarter. Cheap{CYAN}   ║
-    ║     │                          │   {DIM}lodgings. Thin{CYAN}    ║
-    ║     │   ▓▓▓▓▓▓▓▓ {WHITE}BOTTLES{CYAN}      │   {DIM}walls.{CYAN}            ║
-    ║     └──────────────────────────┘                      ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+  {DIM}Past Midnight                       Across the River{CYAN}
+  ~~~~~~~~~~~~~                    {DIM}Lebyadkin's Rooms{CYAN}
+
+      ~  ~  ~  ~  ~  ~  ~ {DIM}river{CYAN} ~  ~  ~  ~  ~  ~  ~  ~
+     ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~
+
+         ________________________________________________
+        |            |                |                   |
+        |  .------. |                |      .----.       |
+        |  |{DIM}candle{CYAN}| |    o     o     |      |{DIM}icon{CYAN}  |      |
+        |  | {YELLOW}*{CYAN}    | |   /|\\   /|\\    |      '----'       |
+        |  '------' |   / \\   / \\    |                   |
+        |            |  {WHITE}MARYA{CYAN} {WHITE}CAPTAIN{CYAN}  |   .---. .---. .-. |
+        |  .-------. |                |   |{DIM}///|{CYAN} |{DIM}///|{CYAN} |{DIM}/|{CYAN} |
+        |  | {WHITE}CHAIR{CYAN} | |    {DIM}papers &{CYAN}    |   |{DIM}///|{CYAN} |{DIM}///|{CYAN} |{DIM}/|{CYAN} |
+        |  '-------' |    {DIM}terrible{CYAN}   |   '---' '---' '-' |
+        |            |    {DIM}poetry{CYAN}     |     {DIM}BOTTLES{CYAN}       |
+        |____________|________________|___________________|
+                           |
+                    _______|_______
+                   |  {DIM}Thin walls.{CYAN}   |
+                   |  {DIM}Cheap rooms.{CYAN}  |
+                   |_______________|{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER V: NIGHT — THE LEBYADKINS AND FEDKA{RESET}")
@@ -1572,20 +1625,33 @@ def chapter_6_ivan_tsarevitch():
     """Part II, Ch.8: Ivan the Tsarevitch — Pyotr's grand proposal."""
     clear_screen()
     print(f"""{RED}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │ ░░░░░░░░░░░░░░░░░░░░░░ │   {WHITE}Late Night{RED}         ║
-    ║     │ ░ {WHITE}RETURNING HOME{RED} ░░░░░░ │   {WHITE}Mud Road{RED}           ║
-    ║     │ ░░░░░░░░░░░░░░░░░░░░░░ │   {WHITE}Toward Skvoreshniki{RED}║
-    ║     │ ░                    ░░ │                       ║
-    ║     │ ░  ○  ←── ○         ░░ │   {DIM}Pyotr Verkhovensky{RED} ║
-    ║     │ ░ /|\\    /|\\       ░░░ │   {DIM}will not let go.{RED}   ║
-    ║     │ ░ / \\    / \\      ░░░░ │   {DIM}He clutches your{RED}   ║
-    ║     │ ░░░░░░░░░░░░░░░░░░░░░░ │   {DIM}sleeve. He raves.{RED} ║
-    ║     └──────────────────────────┘                       ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+  {DIM}Late Night                      Returning to Skvoreshniki{RED}
+
+     *          .          *              .            *
+         .            .         .                 .
+              *                       .       *
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~ {DIM}the mud road{RED} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+              o  <--  o
+             /|\\     /|\\
+             / \\     / \\
+                     {DIM}Pyotr clutches{RED}
+                     {DIM}your sleeve{RED}
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+     {DIM}trees{RED} /||\\    /||\\    /||\\    /||\\    /||\\  {DIM}trees{RED}
+          /||||\\  /||||\\  /||||\\  /||||\\  /||||\\
+         /||||||\\                         /||||||\\
+
+    {DIM}"Listen," he raves. "You shall be our sun.{RED}
+    {DIM} Ivan Tsarevitch... the new leader...{RED}
+    {DIM} I am only your secretary, your Mavriky..."{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER VI: IVAN THE TSAREVITCH{RESET}")
@@ -1747,20 +1813,27 @@ def chapter_7_meeting():
     """Part II, Ch.7: A Meeting — the revolutionary quintet at Virginsky's."""
     clear_screen()
     print(f"""{RED}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │ ░░░░░░░░░░░░░░░░░░░░░░ │   {WHITE}Virginsky's House{RED}  ║
-    ║     │ ░ {WHITE}THE QUINTET{RED} ░░░░░░░░░ │   {WHITE}The Back Room{RED}      ║
-    ║     │ ░░░░░░░░░░░░░░░░░░░░░░ │                       ║
-    ║     │ ░  ○  ○       ○  ○   ░ │   {DIM}Virginsky. Liputin.{RED}║
-    ║     │ ░       ○            ░ │   {DIM}Shigalyov. Lyamshin.{RED}║
-    ║     │ ░  ○        ○      ░░ │   {DIM}Tolkatchenko. Erkel.{RED}║
-    ║     │ ░      ○  ○       ░░░ │   {DIM}And one candle.{RED}    ║
-    ║     │ ░░░░░░░░░░░░░░░░░░░░░░ │                       ║
-    ║     └──────────────────────────┘                       ║
-    ║                                                       ║
-    ╚═══════��═══════════════════════════════════════════════╝{RESET}
+  {DIM}Virginsky's House                          The Back Room{RED}
+  ~~~~~~~~~~~~~~~~~~
+
+         __________________________________________________
+        |                                                    |
+        |     .-------.                                      |
+        |     | {YELLOW}*{RED}     |  {DIM}one candle{RED}                           |
+        |     '-------'                                      |
+        |                                                    |
+        |        o    o    o        {WHITE}THE QUINTET{RED}              |
+        |       /|\\  /|\\  /|\\                                |
+        |                                                    |
+        |        o    o    o    o                             |
+        |       /|\\  /|\\  /|\\  /|\\                           |
+        |                                                    |
+        |  {DIM}Virginsky  Liputin  Shigalyov  Lyamshin{RED}           |
+        |  {DIM}Tolkatchenko  Erkel{RED}                                |
+        |                                                    |
+        |     {DIM}"Starting from unlimited freedom,"{RED}               |
+        |     {DIM}"I arrive at unlimited despotism." - Shigalyov{RED}  |
+        |____________________________________________________|{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER VII: A MEETING{RESET}")
@@ -1905,21 +1978,28 @@ def chapter_8_fete():
     """Part III, Ch.1-2: The Fete — the charity ball and its disaster."""
     clear_screen()
     print(f"""{CYAN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║    ♪ ♫ ♪ ♫ ♪ ♫ ♪ ♫ ♪ ♫ ♪ ♫ ♪ ♫ ♪ ♫               ║
-    ║                                                       ║
-    ║    ┌──────────────────────────────┐                   ║
-    ║    │  ☆  ☆  ☆  ☆  ☆  ☆  ☆  ☆  │   {WHITE}The Great Day{CYAN}  ║
-    ║    │  ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○  │   {WHITE}The Governor's{CYAN}  ║
-    ║    │  ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○  │   {WHITE}Charity Fete{CYAN}    ║
-    ║    │                             │   {WHITE}For the{CYAN}        ║
-    ║    │    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓     │   {WHITE}Governesses{CYAN}    ║
-    ║    │    {WHITE}STAGE{CYAN}                     │                   ║
-    ║    │    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓     │   {DIM}Tickets: 3 roubles{CYAN}║
-    ║    └──────────────────────────────┘   {DIM}Champagne: none{CYAN}  ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+             {WHITE}THE GOVERNOR'S CHARITY FETE{CYAN}
+            {DIM}For the Benefit of Governesses{CYAN}
+
+   ._______________________________________________________________.
+   |   *     *     *     *     *     *     *     *     *     *     |
+   |  .-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.   .-.  |
+   |  |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|   |{YELLOW}o{CYAN}|  |
+   |  '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-'   '-'  |
+   |   {DIM}chandeliers{CYAN}                                                |
+   |                                                               |
+   |    o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o     |
+   |    o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o     |
+   |    o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o  o     |
+   |    {DIM}the crowd, three roubles a ticket{CYAN}                        |
+   |                                                               |
+   |   .========================================================. |
+   |   ||  {WHITE}S T A G E{CYAN}                                          || |
+   |   ||                                                        || |
+   |   ||       {DIM}Karmazinov drones. Stepan weeps.{CYAN}                || |
+   |   ||       {DIM}The champagne has run out.{CYAN}                      || |
+   |   '========================================================' |
+   '_______________________________________________________________'{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER VIII: THE FETE{RESET}")
@@ -2101,21 +2181,30 @@ def chapter_new_liza():
     """Part III, Ch.3: The night Liza comes to Stavrogin."""
     clear_screen()
     print(f"""{MAGENTA}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │                          │   {WHITE}Before Dawn{MAGENTA}       ║
-    ║     │   🕯           ○         │   {WHITE}Skvoreshniki{MAGENTA}      ║
-    ║     │              /|\\        │   {WHITE}Your Rooms{MAGENTA}        ║
-    ║     │    ○         / \\        │                      ║
-    ║     │   /|\\                   │   {DIM}She came to you{MAGENTA}   ║
-    ║     │   / \\    ┌────────┐    │   {DIM}in the night.{MAGENTA}     ║
-    ║     │          │ ▓▓▓▓▓▓ │    │   {DIM}She will leave{MAGENTA}    ║
-    ║     │          │  BED   │    │   {DIM}before morning.{MAGENTA}   ║
-    ║     │          │ ▓▓▓▓▓▓ │    │                      ║
-    ║     └──────────┴────────┴────┘                      ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+  {DIM}Before Dawn                               Skvoreshniki{MAGENTA}
+  ~~~~~~~~~~~~                              {DIM}Your Rooms{MAGENTA}
+
+         ______________________________________________
+        |                                              |
+        |                                              |
+        |       {YELLOW}*{MAGENTA}                                      |
+        |      {DIM}candle{MAGENTA}                                    |
+        |                                              |
+        |                                              |
+        |           o               o                  |
+        |          /|\\             /|\\                 |
+        |          / \\             / \\                 |
+        |                                              |
+        |                                              |
+        |        .================================.    |
+        |        |  /////////////{WHITE}BED{MAGENTA}//////////////  |    |
+        |        |  ////////////////////////////////  |    |
+        |        '================================'    |
+        |______________________________________________|
+
+           {DIM}She came to you in the night.{MAGENTA}
+           {DIM}She will leave before morning.{MAGENTA}
+           {DIM}Both of you know what this costs.{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER X: LIZA{RESET}")
@@ -2294,20 +2383,28 @@ def chapter_9_shatov_murder():
     """Part III, Ch.5-6: The murder of Shatov and Kirillov's suicide."""
     clear_screen()
     print(f"""{RED}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │ ░░░░░░░░░░░░░░░░░░░░░░ │   {WHITE}Night{RED}              ║
-    ║     │ ░  ~~~~~~~~~~~~      ░░ │   {WHITE}Skvoreshniki Park{RED}  ║
-    ║     │ ░  ~ {WHITE}THE POND{RED} ~     ░░░ │   {WHITE}The Grotto{RED}         ║
-    ║     │ ░  ~~~~~~~~~~~~    ░░░░ │                       ║
-    ║     │ ░      ○  ○  ○   ░░░░░ │   {DIM}Five men.{RED}          ║
-    ║     │ ░   ○    ○      ░░░░░░ │   {DIM}One victim.{RED}        ║
-    ║     │ ░         ●    ░░░░░░░ │   {DIM}A printing press{RED}   ║
-    ║     │ ░░░░░░░░░░░░░░░░░░░░░░ │   {DIM}that never existed.{RED}║
-    ║     └──────────────────────────┘                       ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+                          {DIM}Night{RED}
+             {DIM}Skvoreshniki Park     The Grotto{RED}
+
+    /||\\      /||\\      /||\\      /||\\      /||\\
+   /||||\\    /||||\\    /||||\\    /||||\\    /||||\\
+  /||||||\\  /||||||\\  /||||||\\  /||||||\\  /||||||\\
+  ||||||||  ||||||||  ||||||||  ||||||||  ||||||||
+     ||        ||        ||        ||        ||
+
+               o     o
+              /|\\   /|\\
+               o  o  o  o            {DIM}five men{RED}
+              /|\\/|\\/|\\/|\\           {DIM}one victim{RED}
+                   |
+          ~~~~~~~~~~~~~~~~~~~~~~~~
+         ~  ~  ~  ~ {WHITE}THE POND{RED} ~  ~  ~
+        ~   ~   ~   ~   ~   ~   ~   ~
+         ~  ~  ~  ~  ~  ~  ~  ~  ~
+          ~~~~~~~~~~~~~~~~~~~~~~~~
+
+          {DIM}A printing press that never existed.{RED}
+          {DIM}A crime that cannot be undone.{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER IX: A BUSY NIGHT{RESET}")
@@ -2505,27 +2602,29 @@ def chapter_secret_tikhon():
 
     clear_screen()
     print(f"""{YELLOW}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║              ╬            ╬            ╬              ║
-    ║              ║            ║            ║              ║
-    ║             ═╬═          ═╬═          ═╬═             ║
-    ║              ║            ║            ║              ║
-    ║     ┌────────║────────────║────────────║───────┐      ║
-    ║     │        ╨            ╨            ╨       │      ║
-    ║     │  {WHITE}THE BOGORODSKY MONASTERY{YELLOW}                │      ║
-    ║     │  ┌──────────┐  ┌──────────┐  ┌────────┐ │      ║
-    ║     │  │ {WHITE}ICON{YELLOW}     │  │  {WHITE}ICON{YELLOW}    │  │  {WHITE}ICON{YELLOW}  │ │      ║
-    ║     │  │   {WHITE}☦{YELLOW}      │  │   {WHITE}☦{YELLOW}     │  │   {WHITE}☦{YELLOW}   │ │      ║
-    ║     │  └──────────┘  └──────────┘  └────────┘ │      ║
-    ║     │       🕯              🕯            🕯     │      ║
-    ║     │                                          │      ║
-    ║     │     {DIM}A bare cell. A candle. A crucifix.{YELLOW}   │      ║
-    ║     │     {DIM}An old man, ill, retired from his see.{YELLOW}│      ║
-    ║     │     {DIM}And you, with your pages.{YELLOW}             │      ║
-    ║     └──────────────────────────────────────────┘      ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+              _____       _____       _____
+             /     \\     /     \\     /     \\
+            | {WHITE}ICON{YELLOW}  |   | {WHITE}ICON{YELLOW}  |   | {WHITE}ICON{YELLOW}  |
+            |  {WHITE}+{YELLOW}   |   |  {WHITE}+{YELLOW}   |   |  {WHITE}+{YELLOW}   |
+             \\_____/     \\_____/     \\_____/
+                |            |           |
+               {YELLOW}*{YELLOW}            {YELLOW}*{YELLOW}           {YELLOW}*{YELLOW}
+              {DIM}candle{YELLOW}       {DIM}candle{YELLOW}       {DIM}candle{YELLOW}
+
+      {WHITE}THE BOGORODSKY MONASTERY{YELLOW}
+     ______________________________________________
+    |                                              |
+    |    o                          o              |
+    |   /|\\                        /|\\            |
+    |   / \\                        / \\            |
+    |  {DIM}Stavrogin{YELLOW}                   {DIM}Tikhon{YELLOW}            |
+    |                                              |
+    |   {DIM}A bare cell. A crucifix. Your pages.{YELLOW}       |
+    |   {DIM}The old man reads in silence.{YELLOW}               |
+    |______________________________________________|
+
+    {DIM}This chapter was suppressed in 1872.{YELLOW}
+    {DIM}Your choices have unlocked it.{RESET}
 """)
 
     slow_print(f"  {BOLD}AT TIKHON'S — У ТИХОНА{RESET}")
@@ -2799,22 +2898,28 @@ def chapter_new_aftermath():
     """The town in the aftermath: arrests, collapse, confrontation."""
     clear_screen()
     print(f"""{CYAN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║     ┌──────────────────────────┐                      ║
-    ║     │  ░░░░░░░░░░░░░░░░░░░░░ │   {WHITE}Three Days Later{CYAN}  ║
-    ║     │  ░ {WHITE}THE PROVINCIAL TOWN{CYAN} ░ │   {WHITE}The Reckoning{CYAN}     ║
-    ║     │  ░░░░░░░░░░░░░░░░░░░░░ │                      ║
-    ║     │  ░  ○  ○  ○  ○  ○   ░ │   {DIM}Arrests.{CYAN}           ║
-    ║     │  ░     {WHITE}POLICE{CYAN}        ░░ │   {DIM}Confessions.{CYAN}       ║
-    ║     │  ░░░░░░░░░░░░░░░░░░░░░ │   {DIM}The body in{CYAN}       ║
-    ║     │                          │   {DIM}the pond.{CYAN}         ║
-    ║     │     ○                    │                      ║
-    ║     │    /|\\  {DIM}Varvara Petrovna{CYAN}│   {DIM}"I have no son."{CYAN} ║
-    ║     │    / \\                   │                      ║
-    ║     └──────────────────────────┘                      ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+  {WHITE}THE PROVINCIAL TOWN{CYAN}                     {DIM}Three Days Later{CYAN}
+  ~~~~~~~~~~~~~~~~~~~
+
+    .----.  .----.  .----.  .----.  .----.  .----.  .----.
+    |    |  |    |  |    |  |    |  |    |  |    |  |    |
+    | [] |  | [] |  | [] |  | [] |  | [] |  | [] |  | [] |
+    |    |  |    |  |    |  |    |  |    |  |    |  |    |
+    |____|  |____|  |____|  |____|  |____|  |____|  |____|
+   __|  |___|  |___|  |___|  |___|  |___|  |___|  |__|
+  |  ====  ====  ====  ====  ====  ====  ====  ====  |
+  |___________________________________________________|
+  {DIM}                  the main street{CYAN}
+
+         o  o  o  o                   o  o
+        /|\\/|\\/|\\/|\\                 /|\\/|\\
+         {DIM}police{CYAN}                       {DIM}arrested{CYAN}
+
+         .-------------------------------------------.
+         | {DIM}Lyamshin breaks. Crawls to the station.{CYAN}   |
+         | {DIM}The body in the pond. Arrests. Collapse.{CYAN}  |
+         | {DIM}Varvara Petrovna: "I have no son."{CYAN}        |
+         '-------------------------------------------'{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER XII: THE AFTERMATH{RESET}")
@@ -3020,22 +3125,30 @@ def chapter_10_stepan_wandering():
     """Part III, Ch.7: Stepan Trofimovich's Last Wandering."""
     clear_screen()
     print(f"""{GREEN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║                        ╬                              ║
-    ║                        ║                              ║
-    ║                       ═╬═                             ║
-    ║     ┌──────────────────║───────────────────┐          ║
-    ║     │                  ║                   │          ║
-    ║     │    {WHITE}THE HIGH ROAD{GREEN}                    │          ║
-    ║     │    ══════════════════════════════    │          ║
-    ║     │    ░░░  ○  ░░░░░░░░░░░░░░░░░░░░    │          ║
-    ║     │    ░░░ /|\\  ░░░ {WHITE}willows{GREEN} ░░░░░░░░    │          ║
-    ║     │    ░░░ / \\ ░░░░░░░░░░░░░░░░░░░░    │          ║
-    ║     │                  {DIM}with an umbrella{GREEN}    │          ║
-    ║     └─────────────────────────────────────┘          ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+                                    .       .       .
+                *        .                      *
+       .                       .        .                .
+
+  /||\\    /||\\    /||\\    /||\\    /||\\    /||\\    /||\\    /||\\
+  {DIM}willows{GREEN}   {DIM}willows{GREEN}   {DIM}willows{GREEN}   {DIM}willows{GREEN}   {DIM}willows{GREEN}   {DIM}willows{GREEN}
+
+  ================================================================
+  ================================================================
+      {WHITE}THE HIGH ROAD{GREEN}
+  ================================================================
+  ================================================================
+
+                     o
+                    /|\\
+                    / \\
+                   {DIM}Stepan Trofimovich{GREEN}
+                   {DIM}with an umbrella{GREEN}
+                   {DIM}and no destination{GREEN}
+
+  /||\\    /||\\    /||\\    /||\\    /||\\    /||\\    /||\\    /||\\
+
+    {DIM}"All my life I have been lying. Even when I spoke the truth.{GREEN}
+    {DIM} I never spoke for the sake of truth, only for my own sake."{RESET}
 """)
 
     slow_print(f"  {BOLD}CHAPTER XIII: STEPAN TROFIMOVICH'S LAST WANDERING{RESET}")
@@ -3272,22 +3385,28 @@ def chapter_final_boss():
     """The psychological gauntlet. Stavrogin's last night alive."""
     clear_screen()
     print(f"""{CYAN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║    {WHITE}Night  |  Skvoreshniki  |  Your Rooms{CYAN}              ║
-    ║                                                       ║
-    ║          ┌─────────────────────────┐                  ║
-    ║          │  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   │                  ║
-    ║          │  ▓  {WHITE}A desk. A candle.{CYAN} ▓   │                  ║
-    ║          │  ▓  {WHITE}A letter begun.{CYAN}   ▓   │                  ║
-    ║          │  ▓  {WHITE}Five ghosts.{CYAN}      ▓   │                  ║
-    ║          │  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   │                  ║
-    ║          │                         │                  ║
-    ║          └─────────────────────────┘                  ║
-    ║                                                       ║
-    ║    {DIM}Everyone you have touched. Everyone you have{CYAN}      ║
-    ║    {DIM}broken. They are all here tonight.{CYAN}                ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+  {WHITE}Night  |  Skvoreshniki  |  Your Rooms{CYAN}
+
+     __________________________________________________________
+    |                                                          |
+    |     {YELLOW}*{CYAN}                                                    |
+    |    {DIM}candle{CYAN}                                                  |
+    |                                                          |
+    |    .-----------.                                         |
+    |    | {WHITE}a letter{CYAN}  |    {DIM}half-written{CYAN}                          |
+    |    | {WHITE}to Dasha{CYAN}  |    {DIM}the pen still wet{CYAN}                     |
+    |    '-----------'                                         |
+    |                                                          |
+    |        o          o       o        o         o           |
+    |       /|\\        /|\\     /|\\      /|\\       /|\\         |
+    |       / \\        / \\     / \\      / \\       / \\         |
+    |     {DIM}Shatov{CYAN}    {DIM}Kirillov{CYAN}  {DIM}Marya{CYAN}  {DIM}Lebyadkin{CYAN}   {DIM}Liza{CYAN}        |
+    |                                                          |
+    |      {DIM}five ghosts     who will not leave{CYAN}                  |
+    |__________________________________________________________|
+
+    {DIM}Everyone you have touched. Everyone you have broken.{CYAN}
+    {DIM}They are all here tonight.{RESET}
 """)
 
     slow_print(f"  {BOLD}THE LAST NIGHT{RESET}")
@@ -3974,25 +4093,29 @@ def generate_score_card(ending_title, human_count):
 def chapter_11_reckoning():
     """The final chapter. Stavrogin's end."""
     clear_screen()
-    print(f"""{CYAN}
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║    {WHITE}Dawn  |  Skvoreshniki  |  The Loft{CYAN}                ║
-    ║                                                       ║
-    ║          ┌─────────────────────────┐                  ║
-    ║          │                         │                  ║
-    ║          │     ┌───┐               │                  ║
-    ║          │     │   │               │                  ║
-    ║          │     │ ╬ │   {WHITE}A table.{CYAN}    │                  ║
-    ║          │     │ ║ │   {WHITE}A note.{CYAN}     │                  ║
-    ║          │     │═╬═│   {WHITE}A nail.{CYAN}     │                  ║
-    ║          │     │ ║ │   {WHITE}A piece of soap.{CYAN}│                ║
-    ║          │     └─║─┘   {WHITE}A strong silk cord.{CYAN}           ║
-    ║          └───────║─────────────────┘                  ║
-    ║                                                       ║
-    ║    {DIM}Everything proved premeditation and consciousness{CYAN}  ║
-    ║    {DIM}up to the last moment.{CYAN}                              ║
-    ╚═══════════════════════════════════════════════════════╝{RESET}
+    print(f"""{DIM}
+  Dawn  |  Skvoreshniki  |  The Loft{RESET}
+
+     __________________________________________________________
+    |                                                          |
+    |                                                          |
+    |                                                          |
+    |                                                          |
+    |                    .-------.                              |
+    |                    |       |                              |
+    |                    |   {WHITE}+{DIM}   |                              |
+    |                    |   {WHITE}|{DIM}   |                              |
+    |                    |  {WHITE}=|={DIM}  |                              |
+    |                    |   {WHITE}|{DIM}   |    {DIM}A table.{RESET}{DIM}                   |
+    |                    |   {WHITE}|{DIM}   |    {DIM}A note.{RESET}{DIM}                    |
+    |                    |   {WHITE}|{DIM}   |    {DIM}A nail.{RESET}{DIM}                    |
+    |                    '---{WHITE}|{DIM}---'    {DIM}A piece of soap.{RESET}{DIM}           |
+    |                        {WHITE}|{DIM}        {DIM}A strong silk cord.{RESET}{DIM}        |
+    |                                                          |
+    |__________________________________________________________|
+
+    {DIM}Everything proved premeditation and consciousness
+    up to the last moment.{RESET}
 """)
 
     slow_print(f"  {BOLD}EPILOGUE: CONCLUSION{RESET}")
