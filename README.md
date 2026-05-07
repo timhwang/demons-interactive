@@ -6,11 +6,15 @@ You play as **Nikolai Vsevolodovich Stavrogin** — aristocrat, officer, husband
 
 ## How to Play
 
+**In the terminal:**
+
 ```bash
 python3 demons.py
 ```
 
-**Requirements:** Python 3.6+ (no external dependencies). Runs in any terminal that supports ANSI escape codes.
+**Requirements:** Python 3.7+ (no external dependencies). Runs in any terminal that supports ANSI escape codes.
+
+**In the browser:** an auto-deployed web build runs the same `demons.py` under [Pyodide](https://pyodide.org) inside an [xterm.js](https://xtermjs.org) terminal. Pushes to `main` redeploy the [GitHub Pages site](.github/workflows/pages.yml). Saves persist to `localStorage` instead of `~/.demons_save.json`.
 
 ### Controls
 - **Number keys** — select choices at decision points
