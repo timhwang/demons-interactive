@@ -152,14 +152,20 @@ async function boot() {
     stderr: (s) => term.write(s + "\r\n"),
   });
 
-  // Stream stdout char-by-char (without forced newline) so slow_print's
-  // sys.stdout.write/flush per character renders smoothly.
-  pyodide.setStdout({
-    batched: (s) => term.write(s.replace(/\n/g, "\r\n")),
-  });
-  pyodide.setStderr({
-    batched: (s) => term.write(s.replace(/\n/g, "\r\n")),
-  });
+  // Pyodide's `batched` setStdout mode strips newlines from each callback
+  // invocation, which made multi-line print() blocks render onto a single
+  // xterm row (no line break inserted between lines). Switch to `write` mode
+  // so we receive the raw byte buffer and can preserve newlines exactly,
+  // converting bare \n to \r\n the way xterm needs.
+  const decoder = new TextDecoder("utf-8");
+  function pipeBytes(buffer) {
+    const text = decoder.decode(buffer, { stream: true });
+    // Bare \n -> \r\n; leave existing \r\n alone.
+    term.write(text.replace(/(?<!\r)\n/g, "\r\n"));
+    return buffer.length;
+  }
+  pyodide.setStdout({ write: pipeBytes });
+  pyodide.setStderr({ write: pipeBytes });
 
   setProgress("Fetching the provincial chronicle…");
   const code = await fetch("./demons.py").then((r) => {
