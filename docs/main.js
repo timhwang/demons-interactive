@@ -17,7 +17,7 @@ const TERM_FONT = '"JetBrains Mono", "Menlo", "Monaco", "Courier New", monospace
 // phone in landscape.
 const MIN_COLS = 85;
 const MIN_FONT = 10;
-const MAX_FONT = 18;
+const MAX_FONT = 15;
 
 const term = new Terminal({
   convertEol: true,
