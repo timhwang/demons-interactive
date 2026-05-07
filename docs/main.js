@@ -10,6 +10,15 @@ function setProgress(msg) {
 
 const TERM_FONT = '"JetBrains Mono", "Menlo", "Monaco", "Courier New", monospace';
 
+// The widest line of demons.py's ASCII art (chapter 1's carriage scene) is
+// 83 chars. Chapter borders and the chapel diagram sit around 70-75. We size
+// the font so at least MIN_COLS chars fit at the current viewport width;
+// this lets the same source render cleanly from a wide desktop down to a
+// phone in landscape.
+const MIN_COLS = 85;
+const MIN_FONT = 10;
+const MAX_FONT = 18;
+
 const term = new Terminal({
   convertEol: true,
   cursorBlink: true,
@@ -43,6 +52,30 @@ function safeFit() {
   }
 }
 
+// Pick a fontSize so at least MIN_COLS chars fit in the current container,
+// then refit. This is iterative because xterm's actual char width depends on
+// the rendered font (varies slightly across browsers/zoom levels), so we let
+// proposeDimensions tell us the truth and step the size to match.
+function applyResponsiveFont() {
+  const container = document.getElementById("term");
+  if (!container || container.clientWidth <= 0) return;
+
+  // Start at MAX_FONT and step down until proposeDimensions reports >= MIN_COLS,
+  // or we hit MIN_FONT (then accept whatever cols we get; mobile fallback).
+  let size = MAX_FONT;
+  for (; size >= MIN_FONT; size--) {
+    if (term.options.fontSize !== size) {
+      term.options.fontSize = size;
+    }
+    let proposed;
+    try { proposed = fitAddon.proposeDimensions(); } catch (e) { proposed = null; }
+    if (proposed && proposed.cols >= MIN_COLS) break;
+  }
+  if (size < MIN_FONT) size = MIN_FONT;
+  if (term.options.fontSize !== size) term.options.fontSize = size;
+  safeFit();
+}
+
 // xterm measures char-cell width once, on Terminal.open(). If JetBrains Mono
 // hasn't finished downloading at that moment, xterm picks Menlo's narrower
 // glyph widths and computes more cols than actually fit — so when the title
@@ -57,12 +90,18 @@ async function openTerminal() {
   }
   term.open(document.getElementById("term"));
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-  safeFit();
+  applyResponsiveFont();
 }
 
-window.addEventListener("resize", safeFit);
+// Debounce resize events so we don't refit on every pixel during a window drag.
+let resizeTimer = null;
+function scheduleResponsiveFit() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(applyResponsiveFont, 100);
+}
+window.addEventListener("resize", scheduleResponsiveFit);
 if (typeof ResizeObserver !== "undefined") {
-  new ResizeObserver(safeFit).observe(document.getElementById("term"));
+  new ResizeObserver(scheduleResponsiveFit).observe(document.getElementById("term"));
 }
 
 // ─── Async input bridge ──────────────────────────────────────
@@ -198,10 +237,10 @@ demons.ainput = web_ainput
   loading.classList.add("hidden");
   setTimeout(() => loading.remove(), 500);
 
-  // Final fit once the loading overlay is on its way out — gives the
-  // terminal a definitive size for slow_print's line wrapping.
+  // Final responsive fit once the loading overlay is on its way out — gives
+  // the terminal a definitive size for slow_print's line wrapping.
   await new Promise((r) => setTimeout(r, 50));
-  safeFit();
+  applyResponsiveFont();
   term.focus();
 
   try {
