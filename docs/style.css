@@ -3,7 +3,7 @@ html, body {
   padding: 0;
   background: #0c0c0c;
   color: #d4d4d4;
-  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  font-family: "JetBrains Mono", "Menlo", "Monaco", "Courier New", monospace;
   height: 100%;
   overflow: hidden;
 }

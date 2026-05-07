@@ -11,8 +11,10 @@ function setProgress(msg) {
 const term = new Terminal({
   convertEol: true,
   cursorBlink: true,
-  fontFamily: '"Menlo", "Monaco", "Courier New", monospace',
+  fontFamily: '"JetBrains Mono", "Menlo", "Monaco", "Courier New", monospace',
   fontSize: 14,
+  lineHeight: 1.0,
+  letterSpacing: 0,
   theme: {
     background: "#0c0c0c",
     foreground: "#d4d4d4",
