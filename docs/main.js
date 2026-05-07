@@ -8,10 +8,12 @@ function setProgress(msg) {
   if (progressEl) progressEl.textContent = msg;
 }
 
+const TERM_FONT = '"JetBrains Mono", "Menlo", "Monaco", "Courier New", monospace';
+
 const term = new Terminal({
   convertEol: true,
   cursorBlink: true,
-  fontFamily: '"JetBrains Mono", "Menlo", "Monaco", "Courier New", monospace',
+  fontFamily: TERM_FONT,
   fontSize: 14,
   lineHeight: 1.0,
   letterSpacing: 0,
@@ -29,10 +31,7 @@ const term = new Terminal({
 });
 const fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
-term.open(document.getElementById("term"));
 
-// Wait for monospace fonts to be ready before measuring char dimensions,
-// otherwise xterm misreads char width and the terminal collapses to ~4 cols.
 function safeFit() {
   try {
     const proposed = fitAddon.proposeDimensions();
@@ -43,15 +42,25 @@ function safeFit() {
     /* container not yet sized */
   }
 }
-async function fitWhenReady() {
-  if (document.fonts && document.fonts.ready) {
-    try { await document.fonts.ready; } catch (e) {}
+
+// xterm measures char-cell width once, on Terminal.open(). If JetBrains Mono
+// hasn't finished downloading at that moment, xterm picks Menlo's narrower
+// glyph widths and computes more cols than actually fit — so when the title
+// art renders with JetBrains Mono's wider glyphs, lines wrap.
+// Wait for the webfont to load BEFORE opening the terminal; then refit after.
+async function openTerminal() {
+  if (document.fonts && document.fonts.load) {
+    try {
+      await document.fonts.load('14px "JetBrains Mono"');
+      await document.fonts.ready;
+    } catch (e) { /* fall back silently */ }
   }
+  term.open(document.getElementById("term"));
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   safeFit();
 }
+
 window.addEventListener("resize", safeFit);
-// If the container resizes (e.g. mobile keyboard, devtools panel), refit.
 if (typeof ResizeObserver !== "undefined") {
   new ResizeObserver(safeFit).observe(document.getElementById("term"));
 }
@@ -96,7 +105,7 @@ window.demonsGetLine = function () {
 
 // ─── Boot Pyodide ────────────────────────────────────────────
 async function boot() {
-  await fitWhenReady();
+  await openTerminal();
   setProgress("Downloading Pyodide runtime…");
   const pyodide = await loadPyodide({
     indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/",
